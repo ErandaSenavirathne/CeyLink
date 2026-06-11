@@ -1,0 +1,141 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  password     String
+  name         String
+  phone        String?
+  role         Role      @default(CUSTOMER)
+  district     String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  provider     Provider?
+  bookingsAsCustomer Booking[] @relation("CustomerBookings")
+  reviews      Review[]
+}
+
+model Provider {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id])
+  bio              String?
+  nicNumber        String?
+  nicVerified      Boolean   @default(false)
+  verificationStatus VerificationStatus @default(PENDING)
+  district         String
+  hourlyRate       Float?
+  profilePhoto     String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  services         Service[]
+  bookings         Booking[] @relation("ProviderBookings")
+  reviews          Review[]
+}
+
+model Service {
+  id          String    @id @default(uuid())
+  providerId  String
+  provider    Provider  @relation(fields: [providerId], references: [id])
+  category    String
+  title       String
+  description String?
+  basePrice   Float
+  createdAt   DateTime  @default(now())
+
+  bookings    Booking[]
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  customerId    String
+  customer      User          @relation("CustomerBookings", fields: [customerId], references: [id])
+  providerId    String
+  provider      Provider      @relation("ProviderBookings", fields: [providerId], references: [id])
+  serviceId     String
+  service       Service       @relation(fields: [serviceId], references: [id])
+  bookingDate   DateTime
+  timeSlot      String
+  status        BookingStatus @default(PENDING)
+  paymentMode   PaymentMode   @default(CASH)
+  photoUrls     String[]
+  voiceNoteUrl  String?
+  isUrgent      Boolean       @default(false)
+  notes         String?
+  totalAmount   Float?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  payment       Payment?
+  review        Review?
+}
+
+model Review {
+  id          String    @id @default(uuid())
+  bookingId   String    @unique
+  booking     Booking   @relation(fields: [bookingId], references: [id])
+  customerId  String
+  customer    User      @relation(fields: [customerId], references: [id])
+  providerId  String
+  provider    Provider  @relation(fields: [providerId], references: [id])
+  rating      Int
+  reviewText  String?
+  createdAt   DateTime  @default(now())
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  bookingId     String        @unique
+  booking       Booking       @relation(fields: [bookingId], references: [id])
+  amount        Float
+  paymentMethod PaymentMode
+  transactionId String?
+  status        PaymentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+}
+
+enum Role {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMode {
+  ONLINE
+  CASH
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
