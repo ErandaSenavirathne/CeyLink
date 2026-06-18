@@ -34,7 +34,7 @@ app.get('/api/health', (req, res) => {
 // Routes (we'll add these soon)
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/providers', require('./routes/providers'))
-// app.use('/api/bookings', require('./routes/bookings'))
+app.use('/api/bookings', require('./routes/bookings'))
 
 // Global error handler
 app.use((err, req, res, next) => {
