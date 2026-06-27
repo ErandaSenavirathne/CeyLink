@@ -10,6 +10,7 @@ export default function BookingForm() {
   const [service, setService] = useState(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
@@ -21,6 +22,10 @@ export default function BookingForm() {
     isUrgent: false
   })
 
+  // Photo upload state
+  const [photoFile, setPhotoFile] = useState(null)
+  const [photoPreview, setPhotoPreview] = useState(null)
+
   const timeSlots = [
     '8:00 AM - 10:00 AM', '10:00 AM - 12:00 PM', '12:00 PM - 2:00 PM',
     '2:00 PM - 4:00 PM', '4:00 PM - 6:00 PM'
@@ -29,6 +34,13 @@ export default function BookingForm() {
   useEffect(() => {
     fetchService()
   }, [serviceId])
+
+  // Clean up the preview URL when the component unmounts or photo changes
+  useEffect(() => {
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview)
+    }
+  }, [photoPreview])
 
   const fetchService = async () => {
     try {
@@ -49,22 +61,68 @@ export default function BookingForm() {
     setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value })
   }
 
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    // Basic client-side validation matching the backend's allowed types and size limit
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      setError('Please select a JPEG, PNG, or WebP image.')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be smaller than 5MB.')
+      return
+    }
+
+    setError('')
+    setPhotoFile(file)
+    setPhotoPreview(URL.createObjectURL(file))
+  }
+
+  const removePhoto = () => {
+    setPhotoFile(null)
+    setPhotoPreview(null)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setSubmitting(true)
 
     try {
+      let photoUrls = []
+
+      // Step 1: Upload the photo first (if one was selected) to get its Cloudinary URL
+      if (photoFile) {
+        setUploadingPhoto(true)
+
+        const photoFormData = new FormData()
+        photoFormData.append('photo', photoFile)
+
+        const uploadRes = await api.post('/upload/photo', photoFormData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+
+        photoUrls = [uploadRes.data.url]
+        setUploadingPhoto(false)
+      }
+
+      // Step 2: Create the booking, including the photo URL if we got one
       await api.post('/bookings', {
         serviceId,
-        ...formData
+        ...formData,
+        photoUrls
       })
+
       setSuccess(true)
       setTimeout(() => navigate('/my-bookings'), 2000)
     } catch (err) {
       setError(err.response?.data?.error || 'Booking failed. Please try again.')
     } finally {
       setSubmitting(false)
+      setUploadingPhoto(false)
     }
   }
 
@@ -166,6 +224,39 @@ export default function BookingForm() {
             />
           </div>
 
+          {/* Photo upload field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Add a photo (optional)</label>
+            <p className="text-xs text-gray-400 mb-2">Helps the provider understand the issue. JPEG, PNG, or WebP, max 5MB.</p>
+
+            {!photoPreview && (
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handlePhotoChange}
+                className="w-full text-sm text-gray-600 border border-gray-300 rounded-md px-3 py-2 cursor-pointer"
+              />
+            )}
+
+            {photoPreview && (
+              <div className="relative inline-block">
+                <img
+                  src={photoPreview}
+                  alt="Preview"
+                  className="w-32 h-32 object-cover rounded-md border border-gray-200"
+                />
+                <button
+                  type="button"
+                  onClick={removePhoto}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center hover:bg-red-600"
+                  aria-label="Remove photo"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+          </div>
+
           <label className="flex items-center gap-2 text-sm text-gray-600">
             <input
               type="checkbox" name="isUrgent"
@@ -180,7 +271,7 @@ export default function BookingForm() {
             disabled={submitting}
             className="w-full bg-primary text-white py-2.5 rounded-md font-semibold hover:bg-blue-900 transition disabled:opacity-50"
           >
-            {submitting ? 'Confirming...' : 'Confirm Booking'}
+            {uploadingPhoto ? 'Uploading photo...' : submitting ? 'Confirming...' : 'Confirm Booking'}
           </button>
         </form>
       </div>
