@@ -1,0 +1,170 @@
+import { useState, useEffect } from 'react'
+import api from '../services/api'
+import Navbar from '../components/Navbar'
+
+const statusStyles = {
+  PENDING: 'bg-yellow-100 text-yellow-700',
+  CONFIRMED: 'bg-blue-100 text-blue-700',
+  IN_PROGRESS: 'bg-purple-100 text-purple-700',
+  COMPLETED: 'bg-green-100 text-green-700',
+  CANCELLED: 'bg-red-100 text-red-700'
+}
+
+// Defines which status can move to which next status
+const nextActions = {
+  PENDING: [{ label: 'Accept', value: 'CONFIRMED', style: 'bg-primary text-white' }, { label: 'Reject', value: 'CANCELLED', style: 'bg-red-50 text-red-600 border border-red-200' }],
+  CONFIRMED: [{ label: 'Start Job', value: 'IN_PROGRESS', style: 'bg-primary text-white' }],
+  IN_PROGRESS: [{ label: 'Mark Complete', value: 'COMPLETED', style: 'bg-green-600 text-white' }],
+}
+
+export default function ProviderDashboard() {
+  const [bookings, setBookings] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [updatingId, setUpdatingId] = useState(null)
+  const [filter, setFilter] = useState('ALL')
+
+  useEffect(() => {
+    fetchBookings()
+  }, [])
+
+  const fetchBookings = async () => {
+    setLoading(true)
+    try {
+      const res = await api.get('/bookings/provider-bookings')
+      setBookings(res.data)
+    } catch {
+      setError('Could not load your bookings.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateStatus = async (bookingId, newStatus) => {
+    setUpdatingId(bookingId)
+    try {
+      await api.patch(`/bookings/${bookingId}/status`, { status: newStatus })
+      fetchBookings()
+    } catch (err) {
+      alert(err.response?.data?.error || 'Could not update booking')
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const filteredBookings = filter === 'ALL'
+    ? bookings
+    : bookings.filter(b => b.status === filter)
+
+  // Quick stats for the top of the dashboard
+  const stats = {
+    pending: bookings.filter(b => b.status === 'PENDING').length,
+    active: bookings.filter(b => ['CONFIRMED', 'IN_PROGRESS'].includes(b.status)).length,
+    completed: bookings.filter(b => b.status === 'COMPLETED').length,
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <p className="text-center text-gray-500 mt-10">Loading your dashboard...</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold text-gray-800 mb-1">Provider Dashboard</h1>
+        <p className="text-gray-500 mb-6">Manage your incoming bookings</p>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+            <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+            <p className="text-xs text-gray-500 mt-1">Pending</p>
+          </div>
+          <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+            <p className="text-2xl font-bold text-blue-600">{stats.active}</p>
+            <p className="text-xs text-gray-500 mt-1">Active</p>
+          </div>
+          <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+            <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
+            <p className="text-xs text-gray-500 mt-1">Completed</p>
+          </div>
+        </div>
+
+        {/* Filter pills */}
+        <div className="flex gap-2 mb-6 overflow-x-auto">
+          {['ALL', 'PENDING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'].map((status) => (
+            <button
+              key={status}
+              onClick={() => setFilter(status)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition ${
+                filter === status ? 'bg-primary text-white' : 'bg-white text-gray-600 border border-gray-200'
+              }`}
+            >
+              {status.replace('_', ' ')}
+            </button>
+          ))}
+        </div>
+
+        {error && <p className="text-red-600">{error}</p>}
+
+        {!loading && filteredBookings.length === 0 && (
+          <div className="bg-white rounded-lg p-8 text-center text-gray-500">
+            No bookings {filter !== 'ALL' ? `with status "${filter.replace('_', ' ')}"` : ''} yet.
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {filteredBookings.map((booking) => (
+            <div key={booking.id} className="bg-white rounded-lg shadow-sm p-5">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <h3 className="font-semibold text-gray-800">{booking.service.title}</h3>
+                  <p className="text-sm text-gray-500">Customer: {booking.customer.name}</p>
+                  {booking.customer.phone && (
+                    <p className="text-sm text-gray-500">📞 {booking.customer.phone}</p>
+                  )}
+                </div>
+                <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusStyles[booking.status]}`}>
+                  {booking.status.replace('_', ' ')}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mt-3">
+                <p>📅 {new Date(booking.bookingDate).toLocaleDateString()}</p>
+                <p>🕐 {booking.timeSlot}</p>
+                <p>💰 Rs. {booking.totalAmount} ({booking.paymentMode})</p>
+                {booking.isUrgent && <p className="text-red-600 font-medium">⚡ Urgent</p>}
+              </div>
+
+              {booking.notes && (
+                <p className="text-sm text-gray-500 mt-2 italic">"{booking.notes}"</p>
+              )}
+
+              {/* Action buttons based on current status */}
+              {nextActions[booking.status] && (
+                <div className="mt-4 flex gap-2">
+                  {nextActions[booking.status].map((action) => (
+                    <button
+                      key={action.value}
+                      onClick={() => updateStatus(booking.id, action.value)}
+                      disabled={updatingId === booking.id}
+                      className={`text-sm px-4 py-1.5 rounded-md font-medium transition disabled:opacity-50 ${action.style}`}
+                    >
+                      {updatingId === booking.id ? 'Updating...' : action.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}

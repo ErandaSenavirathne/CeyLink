@@ -5,6 +5,7 @@ import Browse from './pages/Browse'
 import ProviderDetail from './pages/ProviderDetail'
 import BookingForm from './pages/BookingForm'
 import MyBookings from './pages/MyBookings'
+import ProviderDashboard from './pages/ProviderDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import { useAuth } from './context/AuthContext'
 
@@ -27,6 +28,7 @@ function App() {
       <Route path="/provider/:id" element={<ProtectedRoute><ProviderDetail /></ProtectedRoute>} />
       <Route path="/book/:serviceId" element={<ProtectedRoute><BookingForm /></ProtectedRoute>} />
       <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><ProviderDashboard /></ProtectedRoute>} />
       <Route path="/" element={<Navigate to={user ? '/browse' : '/login'} />} />
     </Routes>
   )
