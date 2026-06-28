@@ -1,3 +1,4 @@
+const { notifyNewBooking, notifyBookingConfirmed, notifyBookingCancelled, notifyProviderCancelled } = require('../services/whatsappService')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
@@ -35,6 +36,17 @@ exports.createBooking = async (req, res) => {
         provider: { include: { user: { select: { name: true, phone: true } } } }
       }
     })
+
+    // Notify the provider via WhatsApp (don't let this block the response if it fails)
+    if (booking.provider.user.phone) {
+      notifyNewBooking(
+        booking.provider.user.phone,
+        req.body.customerName || 'A customer',
+        booking.service.title,
+        new Date(booking.bookingDate).toLocaleDateString(),
+        booking.timeSlot
+      )
+    }
 
     res.status(201).json({ message: 'Booking created successfully', booking })
   } catch (error) {
@@ -117,6 +129,26 @@ exports.updateBookingStatus = async (req, res) => {
       data: { status }
     })
 
+    // Notify customer based on the new status
+    const fullBooking = await prisma.booking.findUnique({
+      where: { id },
+      include: { customer: true, service: true, provider: { include: { user: true } } }
+    })
+
+    if (fullBooking.customer.phone) {
+      if (status === 'CONFIRMED') {
+        await notifyBookingConfirmed(
+          fullBooking.customer.phone,
+          fullBooking.provider.user.name,
+          fullBooking.service.title,
+          new Date(fullBooking.bookingDate).toLocaleDateString(),
+          fullBooking.timeSlot
+        )
+      } else if (status === 'CANCELLED') {
+        await notifyBookingCancelled(fullBooking.customer.phone, fullBooking.service.title)
+      }
+    }
+
     res.json({ message: `Booking status updated to ${status}`, booking: updated })
   } catch (error) {
     res.status(500).json({ error: 'Could not update booking', details: error.message })
@@ -143,8 +175,23 @@ exports.cancelBooking = async (req, res) => {
       data: { status: 'CANCELLED' }
     })
 
+    // Notify the provider that the customer cancelled
+    const fullBooking = await prisma.booking.findUnique({
+      where: { id },
+      include: { service: true, provider: { include: { user: true } }, customer: true }
+    })
+
+    if (fullBooking.provider.user.phone) {
+      await notifyProviderCancelled(
+        fullBooking.provider.user.phone,
+        fullBooking.customer.name,
+        fullBooking.service.title
+      )
+    }
+
     res.json({ message: 'Booking cancelled', booking: updated })
   } catch (error) {
+    console.error('Cancel booking error:', error)
     res.status(500).json({ error: 'Could not cancel booking', details: error.message })
   }
 }
