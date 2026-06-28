@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
@@ -12,12 +13,14 @@ const statusStyles = {
 
 // Defines which status can move to which next status
 const nextActions = {
-  PENDING: [{ label: 'Accept', value: 'CONFIRMED', style: 'bg-primary text-white' }, { label: 'Reject', value: 'CANCELLED', style: 'bg-red-50 text-red-600 border border-red-200' }],
-  CONFIRMED: [{ label: 'Start Job', value: 'IN_PROGRESS', style: 'bg-primary text-white' }],
-  IN_PROGRESS: [{ label: 'Mark Complete', value: 'COMPLETED', style: 'bg-green-600 text-white' }],
+  PENDING: [{ labelKey: 'dashboard.accept', value: 'CONFIRMED', style: 'bg-primary text-white' }, { labelKey: 'dashboard.reject', value: 'CANCELLED', style: 'bg-red-50 text-red-600 border border-red-200' }],
+  CONFIRMED: [{ labelKey: 'dashboard.startJob', value: 'IN_PROGRESS', style: 'bg-primary text-white' }],
+  IN_PROGRESS: [{ labelKey: 'dashboard.markComplete', value: 'COMPLETED', style: 'bg-green-600 text-white' }],
 }
 
 export default function ProviderDashboard() {
+  const { t, i18n } = useTranslation()
+  console.log('Current language:', i18n.language, '| Translated title:', t('dashboard.title'))
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -77,22 +80,22 @@ export default function ProviderDashboard() {
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-1">Provider Dashboard</h1>
-        <p className="text-gray-500 mb-6">Manage your incoming bookings</p>
+        <h1 className="text-2xl font-bold text-gray-800 mb-1">{t('dashboard.title')}</h1>
+        <p className="text-gray-500 mb-6">{t('dashboard.subtitle')}</p>
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="bg-white rounded-lg p-4 text-center shadow-sm">
             <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-            <p className="text-xs text-gray-500 mt-1">Pending</p>
+            <p className="text-xs text-gray-500 mt-1">{t('dashboard.pending')}</p>
           </div>
           <div className="bg-white rounded-lg p-4 text-center shadow-sm">
             <p className="text-2xl font-bold text-blue-600">{stats.active}</p>
-            <p className="text-xs text-gray-500 mt-1">Active</p>
+            <p className="text-xs text-gray-500 mt-1">{t('dashboard.active')}</p>
           </div>
           <div className="bg-white rounded-lg p-4 text-center shadow-sm">
             <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
-            <p className="text-xs text-gray-500 mt-1">Completed</p>
+            <p className="text-xs text-gray-500 mt-1">{t('dashboard.completed')}</p>
           </div>
         </div>
 
@@ -106,7 +109,7 @@ export default function ProviderDashboard() {
                 filter === status ? 'bg-primary text-white' : 'bg-white text-gray-600 border border-gray-200'
               }`}
             >
-              {status.replace('_', ' ')}
+              {status === 'ALL' ? t('dashboard.all') : t(`status.${status}`)}
             </button>
           ))}
         </div>
@@ -115,7 +118,7 @@ export default function ProviderDashboard() {
 
         {!loading && filteredBookings.length === 0 && (
           <div className="bg-white rounded-lg p-8 text-center text-gray-500">
-            No bookings {filter !== 'ALL' ? `with status "${filter.replace('_', ' ')}"` : ''} yet.
+            {t('dashboard.noBookings')}
           </div>
         )}
 
@@ -131,7 +134,7 @@ export default function ProviderDashboard() {
                   )}
                 </div>
                 <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusStyles[booking.status]}`}>
-                  {booking.status.replace('_', ' ')}
+                  {t(`status.${booking.status}`)}
                 </span>
               </div>
 
@@ -156,7 +159,7 @@ export default function ProviderDashboard() {
                       disabled={updatingId === booking.id}
                       className={`text-sm px-4 py-1.5 rounded-md font-medium transition disabled:opacity-50 ${action.style}`}
                     >
-                      {updatingId === booking.id ? 'Updating...' : action.label}
+                      {updatingId === booking.id ? t('dashboard.updating') : t(action.labelKey)}
                     </button>
                   ))}
                 </div>

@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Register() {
+  const { t } = useTranslation()
   const [formData, setFormData] = useState({
     name: '', email: '', password: '', phone: '', role: 'CUSTOMER', district: ''
   })
@@ -42,7 +44,7 @@ export default function Register() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-3xl font-bold text-primary mb-2">CeyLink 🇱🇰</h1>
-        <p className="text-gray-500 mb-6">Create your account</p>
+        <p className="text-gray-500 mb-6">{t('register.title')}</p>
 
         {error && (
           <div className="bg-red-50 text-red-600 px-4 py-2 rounded mb-4 text-sm">
@@ -52,27 +54,27 @@ export default function Register() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">I am a...</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('register.iAmA')}</label>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, role: 'CUSTOMER' })}
                 className={`flex-1 py-2 rounded-md border-2 font-medium ${formData.role === 'CUSTOMER' ? 'border-accent bg-accent/10 text-accent' : 'border-gray-300 text-gray-500'}`}
               >
-                Customer
+                {t('register.customer')}
               </button>
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, role: 'PROVIDER' })}
                 className={`flex-1 py-2 rounded-md border-2 font-medium ${formData.role === 'PROVIDER' ? 'border-accent bg-accent/10 text-accent' : 'border-gray-300 text-gray-500'}`}
               >
-                Service Provider
+                {t('register.provider')}
               </button>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('register.fullName')}</label>
             <input
               name="name" type="text" required
               value={formData.name} onChange={handleChange}
@@ -81,7 +83,7 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('register.email')}</label>
             <input
               name="email" type="email" required
               value={formData.email} onChange={handleChange}
@@ -90,7 +92,7 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('register.password')}</label>
             <input
               name="password" type="password" required minLength={6}
               value={formData.password} onChange={handleChange}
@@ -99,7 +101,7 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('register.phone')}</label>
             <input
               name="phone" type="tel"
               value={formData.phone} onChange={handleChange}
@@ -109,13 +111,13 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('register.district')}</label>
             <select
               name="district" required
               value={formData.district} onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
             >
-              <option value="">Select your district</option>
+              <option value="">{t('register.selectDistrict')}</option>
               {districts.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>
@@ -125,13 +127,13 @@ export default function Register() {
             disabled={loading}
             className="w-full bg-primary text-white py-2 rounded-md font-semibold hover:bg-blue-900 transition disabled:opacity-50"
           >
-            {loading ? 'Creating account...' : 'Create Account'}
+            {loading ? t('register.loading') : t('register.submit')}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Already have an account?{' '}
-          <Link to="/login" className="text-accent font-semibold">Login</Link>
+          {t('register.haveAccount')}{' '}
+          <Link to="/login" className="text-accent font-semibold">{t('register.login')}</Link>
         </p>
       </div>
     </div>

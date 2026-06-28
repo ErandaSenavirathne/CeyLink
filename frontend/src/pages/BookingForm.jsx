@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 
 export default function BookingForm() {
+  const { t } = useTranslation()
   const { serviceId } = useParams()
   const navigate = useNavigate()
 
@@ -141,8 +143,8 @@ export default function BookingForm() {
         <Navbar />
         <div className="max-w-md mx-auto mt-20 bg-white rounded-lg shadow-sm p-8 text-center">
           <div className="text-5xl mb-4">✅</div>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Booking Confirmed!</h2>
-          <p className="text-gray-500">Redirecting to your bookings...</p>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">{t('bookingForm.confirmed')}</h2>
+          <p className="text-gray-500">{t('bookingForm.redirecting')}</p>
         </div>
       </div>
     )
@@ -156,12 +158,12 @@ export default function BookingForm() {
       <Navbar />
 
       <div className="max-w-lg mx-auto px-4 py-8">
-        <h1 className="text-xl font-bold text-gray-800 mb-1">Confirm Your Booking</h1>
+            <h1 className="text-xl font-bold text-gray-800 mb-1">{t('bookingForm.title')}</h1>
 
         {service && (
           <div className="bg-white rounded-lg shadow-sm p-4 mb-6 mt-4">
             <h3 className="font-semibold text-gray-800">{service.title}</h3>
-            <p className="text-sm text-gray-500">with {service.providerName}</p>
+            <p className="text-sm text-gray-500">{t('bookingForm.with')} {service.providerName}</p>
             <p className="text-primary font-semibold mt-1">Rs. {service.basePrice}</p>
           </div>
         )}
@@ -174,7 +176,7 @@ export default function BookingForm() {
 
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('bookingForm.date')}</label>
             <input
               type="date" name="bookingDate" required min={today}
               value={formData.bookingDate} onChange={handleChange}
@@ -183,39 +185,39 @@ export default function BookingForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Time Slot</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('bookingForm.timeSlot')}</label>
             <select
               name="timeSlot" required
               value={formData.timeSlot} onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
             >
-              <option value="">Select a time</option>
+              <option value="">{t('bookingForm.selectTime')}</option>
               {timeSlots.map(slot => <option key={slot} value={slot}>{slot}</option>)}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('bookingForm.paymentMethod')}</label>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, paymentMode: 'CASH' })}
                 className={`flex-1 py-2 rounded-md border-2 font-medium text-sm ${formData.paymentMode === 'CASH' ? 'border-accent bg-accent/10 text-accent' : 'border-gray-300 text-gray-500'}`}
               >
-                💵 Cash on Completion
+                💵 {t('bookingForm.cash')}
               </button>
               <button
                 type="button"
                 onClick={() => setFormData({ ...formData, paymentMode: 'ONLINE' })}
                 className={`flex-1 py-2 rounded-md border-2 font-medium text-sm ${formData.paymentMode === 'ONLINE' ? 'border-accent bg-accent/10 text-accent' : 'border-gray-300 text-gray-500'}`}
               >
-                💳 Pay Online
+                💳 {t('bookingForm.online')}
               </button>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Describe the issue (optional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('bookingForm.describeIssue')}</label>
             <textarea
               name="notes" rows={3}
               value={formData.notes} onChange={handleChange}
@@ -226,7 +228,7 @@ export default function BookingForm() {
 
           {/* Photo upload field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Add a photo (optional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('bookingForm.addPhoto')}</label>
             <p className="text-xs text-gray-400 mb-2">Helps the provider understand the issue. JPEG, PNG, or WebP, max 5MB.</p>
 
             {!photoPreview && (
@@ -263,7 +265,7 @@ export default function BookingForm() {
               checked={formData.isUrgent} onChange={handleChange}
               className="rounded"
             />
-            This is an urgent request
+              {t('bookingForm.urgent')}
           </label>
 
           <button
@@ -271,7 +273,7 @@ export default function BookingForm() {
             disabled={submitting}
             className="w-full bg-primary text-white py-2.5 rounded-md font-semibold hover:bg-blue-900 transition disabled:opacity-50"
           >
-            {uploadingPhoto ? 'Uploading photo...' : submitting ? 'Confirming...' : 'Confirm Booking'}
+            {uploadingPhoto ? t('bookingForm.uploading') : submitting ? t('bookingForm.confirming') : t('bookingForm.confirm')}
           </button>
         </form>
       </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
@@ -11,6 +12,7 @@ const statusStyles = {
 }
 
 export default function MyBookings() {
+  const { t } = useTranslation()
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -81,14 +83,14 @@ export default function MyBookings() {
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-1">My Bookings</h1>
-        <p className="text-gray-500 mb-6">Track the status of your service requests</p>
+        <h1 className="text-2xl font-bold text-gray-800 mb-1">{t('myBookings.title')}</h1>
+        <p className="text-gray-500 mb-6">{t('myBookings.subtitle')}</p>
 
         {error && <p className="text-red-600">{error}</p>}
 
         {!loading && bookings.length === 0 && (
           <div className="bg-white rounded-lg p-8 text-center text-gray-500">
-            You haven't made any bookings yet.
+            {t('myBookings.noBookings')}
           </div>
         )}
 
@@ -101,7 +103,7 @@ export default function MyBookings() {
                   <p className="text-sm text-gray-500">with {booking.provider.user.name}</p>
                 </div>
                 <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusStyles[booking.status]}`}>
-                  {booking.status.replace('_', ' ')}
+                  {t(`status.${booking.status}`)}
                 </span>
               </div>
 
@@ -120,11 +122,11 @@ export default function MyBookings() {
               <div className="mt-4 flex gap-2">
                 {booking.status === 'PENDING' && (
                   <button
-                    onClick={() => handleCancel(booking.id)}
-                    className="text-sm text-red-600 border border-red-200 px-3 py-1.5 rounded-md hover:bg-red-50 transition"
-                  >
-                    Cancel Booking
-                  </button>
+                  onClick={() => handleCancel(booking.id)}
+                  className="text-sm text-red-600 border border-red-200 px-3 py-1.5 rounded-md hover:bg-red-50 transition"
+                >
+                  {t('myBookings.cancelBooking')}
+                </button>
                 )}
 
                 {booking.status === 'COMPLETED' && !booking.review && reviewingId !== booking.id && (
@@ -132,13 +134,13 @@ export default function MyBookings() {
                     onClick={() => openReviewForm(booking.id)}
                     className="text-sm text-accent border border-accent px-3 py-1.5 rounded-md hover:bg-accent/10 transition"
                   >
-                    Leave a Review
+                    {t('myBookings.leaveReview')}
                   </button>
                 )}
 
                 {booking.status === 'COMPLETED' && booking.review && (
-                  <p className="text-sm text-green-600">✓ You reviewed this service</p>
-                )}
+                  <p className="text-sm text-green-600">✓ {t('myBookings.reviewed')}</p>
+                  )}
               </div>
 
               {/* Inline review form */}
@@ -176,14 +178,14 @@ export default function MyBookings() {
                       disabled={reviewSubmitting}
                       className="bg-primary text-white px-4 py-1.5 rounded-md text-sm font-semibold hover:bg-blue-900 transition disabled:opacity-50"
                     >
-                      {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
+                      {reviewSubmitting ? '...' : t('myBookings.submitReview')}
                     </button>
                     <button
                       type="button"
                       onClick={() => setReviewingId(null)}
                       className="text-sm text-gray-500 px-4 py-1.5"
                     >
-                      Cancel
+                      {t('myBookings.cancel')}
                     </button>
                   </div>
                 </form>

@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -29,7 +31,7 @@ export default function Login() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-3xl font-bold text-primary mb-2">CeyLink 🇱🇰</h1>
-        <p className="text-gray-500 mb-6">Login to your account</p>
+        <p className="text-gray-500 mb-6">{t('login.title')}</p>
 
         {error && (
           <div className="bg-red-50 text-red-600 px-4 py-2 rounded mb-4 text-sm">
@@ -39,7 +41,7 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('login.email')}</label>
             <input
               type="email"
               value={email}
@@ -51,7 +53,7 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('login.password')}</label>
             <input
               type="password"
               value={password}
@@ -67,13 +69,13 @@ export default function Login() {
             disabled={loading}
             className="w-full bg-primary text-white py-2 rounded-md font-semibold hover:bg-blue-900 transition disabled:opacity-50"
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? t('login.loading') : t('login.submit')}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-accent font-semibold">Sign up</Link>
+          {t('login.noAccount')}{' '}
+<Link to="/register" className="text-accent font-semibold">{t('login.signUp')}</Link>
         </p>
       </div>
     </div>
