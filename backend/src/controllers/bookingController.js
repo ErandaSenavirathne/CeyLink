@@ -1,10 +1,14 @@
+const { validationResult } = require('express-validator')
 const { notifyNewBooking, notifyBookingConfirmed, notifyBookingCancelled, notifyProviderCancelled } = require('../services/whatsappService')
-const { PrismaClient } = require('@prisma/client')
-const prisma = new PrismaClient()
+const prisma = require('../utils/prismaClient')
 
 // CREATE a booking (customer only)
 exports.createBooking = async (req, res) => {
   try {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() })
+    }
     const { serviceId, bookingDate, timeSlot, paymentMode, notes, isUrgent, photoUrls } = req.body
 
     // Find the service to get the provider and price
@@ -110,19 +114,24 @@ exports.updateBookingStatus = async (req, res) => {
     }
 
     // Verify this booking belongs to the logged-in provider
-    const provider = await prisma.provider.findUnique({
-      where: { userId: req.user.userId }
-    })
+const provider = await prisma.provider.findUnique({
+  where: { userId: req.user.userId }
+})
 
-    const booking = await prisma.booking.findUnique({ where: { id } })
+// If no provider profile found, this user is not a provider
+if (!provider) {
+  return res.status(403).json({ error: 'Only service providers can update booking status' })
+}
 
-    if (!booking) {
-      return res.status(404).json({ error: 'Booking not found' })
-    }
+const booking = await prisma.booking.findUnique({ where: { id } })
 
-    if (booking.providerId !== provider.id) {
-      return res.status(403).json({ error: 'You are not authorized to update this booking' })
-    }
+if (!booking) {
+  return res.status(404).json({ error: 'Booking not found' })
+}
+
+if (booking.providerId !== provider.id) {
+  return res.status(403).json({ error: 'You are not authorized to update this booking' })
+}
 
     const updated = await prisma.booking.update({
       where: { id },

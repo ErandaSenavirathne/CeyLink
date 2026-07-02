@@ -5,9 +5,13 @@ const bookingController = require('../controllers/bookingController')
 const authMiddleware = require('../middleware/auth')
 
 const bookingValidation = [
-  body('serviceId').notEmpty().withMessage('Service ID is required'),
-  body('bookingDate').isISO8601().withMessage('Valid date is required (YYYY-MM-DD)'),
-  body('timeSlot').notEmpty().withMessage('Time slot is required')
+  body('serviceId')
+    .notEmpty().withMessage('Service ID is required'),
+  body('bookingDate')
+    .notEmpty().withMessage('Booking date is required')
+    .isISO8601().withMessage('Valid date is required (YYYY-MM-DD)'),
+  body('timeSlot')
+    .notEmpty().withMessage('Time slot is required')
 ]
 
 router.post('/', authMiddleware, bookingValidation, bookingController.createBooking)

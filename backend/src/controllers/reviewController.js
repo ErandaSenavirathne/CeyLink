@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client')
-const prisma = new PrismaClient()
+const prisma = require('../utils/prismaClient')
 
 // CREATE a review (customer only, after booking is COMPLETED)
 exports.createReview = async (req, res) => {
