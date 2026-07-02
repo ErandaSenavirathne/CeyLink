@@ -22,14 +22,14 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={user ? <Navigate to="/browse" /> : <Login />} />
-      <Route path="/register" element={user ? <Navigate to="/browse" /> : <Register />} />
+      <Route path="/login" element={user ? <Navigate to={user.role === 'PROVIDER' ? '/dashboard' : '/browse'} /> : <Login />} />
+      <Route path="/register" element={user ? <Navigate to={user.role === 'PROVIDER' ? '/dashboard' : '/browse'} /> : <Register />} />
       <Route path="/browse" element={<ProtectedRoute><Browse /></ProtectedRoute>} />
       <Route path="/provider/:id" element={<ProtectedRoute><ProviderDetail /></ProtectedRoute>} />
       <Route path="/book/:serviceId" element={<ProtectedRoute><BookingForm /></ProtectedRoute>} />
       <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><ProviderDashboard /></ProtectedRoute>} />
-      <Route path="/" element={<Navigate to={user ? '/browse' : '/login'} />} />
+      <Route path="/" element={<Navigate to={user ? (user.role === 'PROVIDER' ? '/dashboard' : '/browse') : '/login'} />} />
     </Routes>
   )
 }

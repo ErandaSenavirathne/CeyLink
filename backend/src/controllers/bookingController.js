@@ -6,6 +6,7 @@ const prisma = require('../utils/prismaClient')
 exports.createBooking = async (req, res) => {
   try {
     const errors = validationResult(req)
+    
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() })
     }
@@ -20,6 +21,10 @@ exports.createBooking = async (req, res) => {
     if (!service) {
       return res.status(404).json({ error: 'Service not found' })
     }
+
+    if (service.provider.userId === req.user.userId) {
+  return res.status(403).json({ error: 'You cannot book your own service' })
+}
 
     const booking = await prisma.booking.create({
       data: {
@@ -66,7 +71,8 @@ exports.getMyBookings = async (req, res) => {
       include: {
         service: true,
         provider: { include: { user: { select: { name: true, phone: true } } } },
-        payment: true
+        payment: true,
+        review: true
       },
       orderBy: { createdAt: 'desc' }
     })

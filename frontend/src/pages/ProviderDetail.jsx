@@ -2,13 +2,17 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
+import { useAuth } from '../context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 export default function ProviderDetail() {
   const { id } = useParams()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [provider, setProvider] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const { user } = useAuth()
 
   useEffect(() => {
     fetchProvider()
@@ -92,12 +96,14 @@ export default function ProviderDetail() {
                 </div>
                 <div className="text-right">
                   <p className="font-semibold text-primary mb-2">Rs. {service.basePrice}</p>
-                  <button
-                    onClick={() => navigate(`/book/${service.id}`)}
-                    className="bg-accent text-white px-4 py-1.5 rounded-md text-sm font-semibold hover:bg-teal-600 transition"
-                  >
-                    Book Now
-                  </button>
+                  {user?.role === 'CUSTOMER' && (
+                    <button
+                      onClick={() => navigate(`/book/${service.id}`)}
+                      className="bg-accent text-white px-4 py-1.5 rounded-md text-sm font-semibold hover:bg-teal-600 transition"
+                    >
+                      {t('browse.viewProfile')}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

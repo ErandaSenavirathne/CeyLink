@@ -29,7 +29,9 @@ export default function Navbar() {
         {user?.role === 'PROVIDER' && (
           <Link to="/dashboard" className="hover:text-accent transition">{t('nav.dashboard')}</Link>
         )}
-        <Link to="/my-bookings" className="hover:text-accent transition">{t('nav.myBookings')}</Link>
+        {user?.role === 'CUSTOMER' && (
+            <Link to="/my-bookings" className="hover:text-accent transition">{t('nav.myBookings')}</Link>
+          )}
 
         {/* Language switcher */}
         <div className="flex gap-1 bg-white/10 rounded-md p-1">

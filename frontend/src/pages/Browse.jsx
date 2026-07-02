@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
+import { useAuth } from '../context/AuthContext'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -18,6 +19,7 @@ export default function Browse() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [districtFilter, setDistrictFilter] = useState('')
+  const { user } = useAuth()
 
   useEffect(() => {
     fetchProviders()
@@ -52,7 +54,7 @@ export default function Browse() {
             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent"
           >
             <option value="">{t('browse.allDistricts')}</option>
-            {districts.map(d => <option key={d} value={d}>{d}</option>)}
+            {districts.map(d => <option key={d} value={d}>{t(`districts.${d}`)}</option>)}
           </select>
         </div>
 
@@ -92,13 +94,14 @@ export default function Browse() {
                   </span>
                 ))}
               </div>
-
-              <Link
-                to={`/provider/${provider.id}`}
-                className="block text-center bg-primary text-white py-2 rounded-md text-sm font-semibold hover:bg-blue-900 transition"
-              >
-                {t('browse.viewProfile')}
-              </Link>
+              {user?.role === 'CUSTOMER' && (
+                  <Link
+                    to={`/provider/${provider.id}`}
+                    className="block text-center bg-primary text-white py-2 rounded-md text-sm font-semibold hover:bg-blue-900 transition"
+                  >
+                    {t('browse.viewProfile')}
+                  </Link>
+                )}
             </div>
           ))}
         </div>
