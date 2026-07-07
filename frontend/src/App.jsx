@@ -8,6 +8,7 @@ import MyBookings from './pages/MyBookings'
 import ProviderDashboard from './pages/ProviderDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import { useAuth } from './context/AuthContext'
+import AdminDashboard from './pages/AdminDashboard'
 
 function App() {
   const { user, loading } = useAuth()
@@ -22,14 +23,67 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={user ? <Navigate to={user.role === 'PROVIDER' ? '/dashboard' : '/browse'} /> : <Login />} />
-      <Route path="/register" element={user ? <Navigate to={user.role === 'PROVIDER' ? '/dashboard' : '/browse'} /> : <Register />} />
+      <Route
+  path="/login"
+  element={
+    user ? (
+      <Navigate
+        to={
+          user.role === 'ADMIN'
+            ? '/admin'
+            : user.role === 'PROVIDER'
+            ? '/dashboard'
+            : '/browse'
+        }
+      />
+    ) : (
+      <Login />
+    )
+  }
+/>
+
+<Route
+  path="/register"
+  element={
+    user ? (
+      <Navigate
+        to={
+          user.role === 'ADMIN'
+            ? '/admin'
+            : user.role === 'PROVIDER'
+            ? '/dashboard'
+            : '/browse'
+        }
+      />
+    ) : (
+      <Register />
+    )
+  }
+/>
+
+<Route
+  path="/"
+  element={
+    <Navigate
+      to={
+        !user
+          ? '/login'
+          : user.role === 'ADMIN'
+          ? '/admin'
+          : user.role === 'PROVIDER'
+          ? '/dashboard'
+          : '/browse'
+      }
+    />
+  }
+/>
       <Route path="/browse" element={<ProtectedRoute><Browse /></ProtectedRoute>} />
       <Route path="/provider/:id" element={<ProtectedRoute><ProviderDetail /></ProtectedRoute>} />
       <Route path="/book/:serviceId" element={<ProtectedRoute><BookingForm /></ProtectedRoute>} />
       <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><ProviderDashboard /></ProtectedRoute>} />
-      <Route path="/" element={<Navigate to={user ? (user.role === 'PROVIDER' ? '/dashboard' : '/browse') : '/login'} />} />
+      <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      
     </Routes>
   )
 }

@@ -42,6 +42,7 @@ app.use('/api/providers', require('./routes/providers'))
 app.use('/api/bookings', require('./routes/bookings'))
 app.use('/api/reviews', require('./routes/reviews'))
 app.use('/api/upload', require('./routes/upload'))
+app.use('/api/admin', require('./routes/admin'))
 
 // Global error handler
 app.use((err, req, res, next) => {
