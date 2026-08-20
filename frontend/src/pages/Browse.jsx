@@ -13,23 +13,36 @@ const districts = [
   'Monaragala', 'Ratnapura', 'Kegalle'
 ]
 
+
+
 export default function Browse() {
   const { t } = useTranslation()
   const [providers, setProviders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [districtFilter, setDistrictFilter] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [categories, setCategories] = useState([])
   const { user } = useAuth()
 
   useEffect(() => {
     fetchProviders()
-  }, [districtFilter])
+  }, [districtFilter, categoryFilter])
+
+  useEffect(() => {
+    api.get('/providers/categories')
+      .then(res => setCategories(res.data))
+      .catch(console.error)
+  }, [])
 
   const fetchProviders = async () => {
     setLoading(true)
     setError('')
     try {
-      const params = districtFilter ? { district: districtFilter } : {}
+      const params = {}
+      if (districtFilter) params.district = districtFilter
+      if (categoryFilter) params.category = categoryFilter
+      
       const res = await api.get('/providers', { params })
       setProviders(res.data)
     } catch {
@@ -47,14 +60,23 @@ export default function Browse() {
         <h1 className="text-2xl font-bold text-gray-800 mb-1">{t('browse.title')}</h1>
         <p className="text-gray-500 mb-6">{t('browse.subtitle')}</p>
 
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col sm:flex-row gap-4">
           <select
             value={districtFilter}
             onChange={(e) => setDistrictFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent"
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent flex-1"
           >
             <option value="">{t('browse.allDistricts')}</option>
             {districts.map(d => <option key={d} value={d}>{t(`districts.${d}`)}</option>)}
+          </select>
+
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent flex-1"
+          >
+            <option value="">{t('browse.allCategories')}</option>
+            {categories.map(c => <option key={c} value={c}>{t(`categories.${c}`, { defaultValue: c })}</option>)}
           </select>
         </div>
 

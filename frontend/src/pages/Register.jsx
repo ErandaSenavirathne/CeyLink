@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext'
 export default function Register() {
   const { t } = useTranslation()
   const [formData, setFormData] = useState({
-    name: '', email: '', password: '', phone: '', role: 'CUSTOMER', district: ''
+    name: '', email: '', password: '', phone: '', role: 'CUSTOMER', district: '', address: ''
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -120,6 +120,16 @@ export default function Register() {
               <option value="">{t('register.selectDistrict')}</option>
               {districts.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('register.address')}</label>
+            <input
+              name="address" type="text"
+              value={formData.address} onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
+              placeholder={t('register.address')}
+            />
           </div>
 
           <button

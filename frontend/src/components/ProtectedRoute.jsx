@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-export default function ProtectedRoute({ children }) {
+export default function ProtectedRoute({ children, allowedRoles, redirectTo }) {
   const { user, loading } = useAuth()
 
   if (loading) {
@@ -13,7 +13,18 @@ export default function ProtectedRoute({ children }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />
+    const fallbackRedirect = allowedRoles && allowedRoles.includes('ADMIN') ? '/admin/login' : '/login'
+    return <Navigate to={redirectTo || fallbackRedirect} replace />
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    const homeRedirect =
+      user.role === 'ADMIN'
+        ? '/admin'
+        : user.role === 'PROVIDER'
+        ? '/dashboard'
+        : '/browse'
+    return <Navigate to={homeRedirect} replace />
   }
 
   return children

@@ -26,6 +26,22 @@ exports.createBooking = async (req, res) => {
   return res.status(403).json({ error: 'You cannot book your own service' })
 }
 
+    // Check if the provider is already booked for this date and time slot
+    const existingBooking = await prisma.booking.findFirst({
+      where: {
+        providerId: service.providerId,
+        bookingDate: new Date(bookingDate),
+        timeSlot,
+        status: {
+          not: 'CANCELLED'
+        }
+      }
+    })
+
+    if (existingBooking) {
+      return res.status(400).json({ error: 'This time slot is already booked for this provider' })
+    }
+
     const booking = await prisma.booking.create({
       data: {
         customerId: req.user.userId,
@@ -97,12 +113,20 @@ exports.getProviderBookings = async (req, res) => {
       where: { providerId: provider.id },
       include: {
         service: true,
-        customer: { select: { name: true, phone: true } },
+        customer: { select: { name: true, phone: true, address: true } },
         payment: true
       },
       orderBy: { createdAt: 'desc' }
     })
-    res.json(bookings)
+
+    const sanitizedBookings = bookings.map(booking => {
+      if (booking.status === 'PENDING' && booking.customer) {
+        booking.customer.address = null;
+      }
+      return booking;
+    })
+
+    res.json(sanitizedBookings)
   } catch (error) {
     res.status(500).json({ error: 'Could not fetch bookings', details: error.message })
   }

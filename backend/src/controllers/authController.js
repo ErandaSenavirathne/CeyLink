@@ -28,7 +28,7 @@ exports.register = async (req, res) => {
       return res.status(400).json({ errors: errors.array() })
     }
 
-    const { name, email, password, phone, role, district } = req.body
+    const { name, email, password, phone, role, district, address } = req.body
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } })
@@ -41,7 +41,7 @@ exports.register = async (req, res) => {
 
     // Create user
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, phone, role, district }
+      data: { name, email, password: hashedPassword, phone, role, district, address }
     })
 
     // If registering as provider, create provider profile too
@@ -104,7 +104,7 @@ exports.getMe = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      select: { id: true, name: true, email: true, role: true, phone: true, district: true, createdAt: true }
+      select: { id: true, name: true, email: true, role: true, phone: true, district: true, address: true, createdAt: true }
     })
     res.json(user)
   } catch (error) {

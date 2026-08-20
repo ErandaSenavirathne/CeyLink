@@ -133,6 +133,97 @@ describe('Booking Endpoints', () => {
 
       expect(res.statusCode).toBe(404)
     })
+
+    it('should reject booking if the provider is already booked in the same time slot on the same date', async () => {
+      const res1 = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          serviceId,
+          bookingDate: '2026-12-01',
+          timeSlot: '10:00 AM - 12:00 PM',
+          paymentMode: 'CASH'
+        })
+      expect(res1.statusCode).toBe(201)
+
+      const res2 = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          serviceId,
+          bookingDate: '2026-12-01',
+          timeSlot: '10:00 AM - 12:00 PM',
+          paymentMode: 'CASH'
+        })
+      expect(res2.statusCode).toBe(400)
+      expect(res2.body.error).toBe('This time slot is already booked for this provider')
+    })
+
+    it('should allow booking if the previous booking in the same slot was cancelled', async () => {
+      const res1 = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          serviceId,
+          bookingDate: '2026-12-01',
+          timeSlot: '10:00 AM - 12:00 PM',
+          paymentMode: 'CASH'
+        })
+      expect(res1.statusCode).toBe(201)
+      const bookingId = res1.body.booking.id
+
+      const cancelRes = await request(app)
+        .patch(`/api/bookings/${bookingId}/cancel`)
+        .set('Authorization', `Bearer ${customerToken}`)
+      expect(cancelRes.statusCode).toBe(200)
+
+      const res2 = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          serviceId,
+          bookingDate: '2026-12-01',
+          timeSlot: '10:00 AM - 12:00 PM',
+          paymentMode: 'CASH'
+        })
+      expect(res2.statusCode).toBe(201)
+      expect(res2.body.booking.status).toBe('PENDING')
+    })
+
+    it('should allow booking the same provider on a different date or different time slot', async () => {
+      const res1 = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          serviceId,
+          bookingDate: '2026-12-01',
+          timeSlot: '10:00 AM - 12:00 PM',
+          paymentMode: 'CASH'
+        })
+      expect(res1.statusCode).toBe(201)
+
+      const res2 = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          serviceId,
+          bookingDate: '2026-12-02',
+          timeSlot: '10:00 AM - 12:00 PM',
+          paymentMode: 'CASH'
+        })
+      expect(res2.statusCode).toBe(201)
+
+      const res3 = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          serviceId,
+          bookingDate: '2026-12-01',
+          timeSlot: '12:00 PM - 2:00 PM',
+          paymentMode: 'CASH'
+        })
+      expect(res3.statusCode).toBe(201)
+    })
   })
 
   describe('GET /api/bookings/my-bookings', () => {

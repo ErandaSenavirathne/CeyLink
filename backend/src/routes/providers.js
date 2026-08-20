@@ -11,6 +11,7 @@ const serviceValidation = [
 ]
 
 router.get('/', providerController.getProviders)
+router.get('/categories', providerController.getCategories)
 router.get('/:id', providerController.getProviderById)
 router.put('/profile', authMiddleware, providerController.updateProvider)
 router.post('/services', authMiddleware, serviceValidation, providerController.addService)

@@ -35,6 +35,20 @@ exports.getProviders = async (req, res) => {
   }
 }
 
+// GET all unique service categories
+exports.getCategories = async (req, res) => {
+  try {
+    const services = await prisma.service.findMany({
+      select: { category: true },
+      distinct: ['category']
+    })
+    const categories = services.map(s => s.category).filter(Boolean)
+    res.json(categories)
+  } catch (error) {
+    res.status(500).json({ error: 'Could not fetch categories', details: error.message })
+  }
+}
+
 // GET single provider profile
 exports.getProviderById = async (req, res) => {
   try {

@@ -20,6 +20,7 @@ model User {
   phone        String?
   role         Role      @default(CUSTOMER)
   district     String?
+  address      String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -29,22 +30,23 @@ model User {
 }
 
 model Provider {
-  id               String    @id @default(uuid())
-  userId           String    @unique
-  user             User      @relation(fields: [userId], references: [id])
-  bio              String?
-  nicNumber        String?
-  nicVerified      Boolean   @default(false)
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  user               User               @relation(fields: [userId], references: [id])
+  bio                String?
+  nicNumber          String?
+  nicVerified        Boolean            @default(false)
   verificationStatus VerificationStatus @default(PENDING)
-  district         String
-  hourlyRate       Float?
-  profilePhoto     String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  district           String
+  hourlyRate         Float?
+  profilePhoto       String?
+  skills             String[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
-  services         Service[]
-  bookings         Booking[] @relation("ProviderBookings")
-  reviews          Review[]
+  services           Service[]
+  bookings           Booking[]          @relation("ProviderBookings")
+  reviews            Review[]
 }
 
 model Service {

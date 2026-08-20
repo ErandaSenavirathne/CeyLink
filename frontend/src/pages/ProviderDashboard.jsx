@@ -105,9 +105,8 @@ export default function ProviderDashboard() {
             <button
               key={status}
               onClick={() => setFilter(status)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition ${
-                filter === status ? 'bg-primary text-white' : 'bg-white text-gray-600 border border-gray-200'
-              }`}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition ${filter === status ? 'bg-primary text-white' : 'bg-white text-gray-600 border border-gray-200'
+                }`}
             >
               {status === 'ALL' ? t('dashboard.all') : t(`status.${status}`)}
             </button>
@@ -132,6 +131,13 @@ export default function ProviderDashboard() {
                   {booking.customer.phone && (
                     <p className="text-sm text-gray-500">📞 {booking.customer.phone}</p>
                   )}
+
+                  {booking.customer.address && booking.status !== 'PENDING' && (
+                    <p className="text-sm text-gray-500">
+                      📍 {booking.customer.address}
+                    </p>
+                  )}
+
                 </div>
                 <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusStyles[booking.status]}`}>
                   {t(`status.${booking.status}`)}

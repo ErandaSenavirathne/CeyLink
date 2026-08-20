@@ -18,8 +18,14 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      await login(email, password)
-      navigate('/browse')
+      const user = await login(email, password)
+      if (user.role === 'ADMIN') {
+        navigate('/admin')
+      } else if (user.role === 'PROVIDER') {
+        navigate('/dashboard')
+      } else {
+        navigate('/browse')
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please try again.')
     } finally {
@@ -75,8 +81,14 @@ export default function Login() {
 
         <p className="text-center text-sm text-gray-500 mt-6">
           {t('login.noAccount')}{' '}
-<Link to="/register" className="text-accent font-semibold">{t('login.signUp')}</Link>
+          <Link to="/register" className="text-accent font-semibold">{t('login.signUp')}</Link>
         </p>
+
+        <div className="mt-6 pt-4 border-t border-gray-100 text-center">
+          <Link to="/admin/login" className="text-xs text-primary hover:text-blue-900 font-semibold transition">
+            Are you an administrator? Admin Login
+          </Link>
+        </div>
       </div>
     </div>
   )
