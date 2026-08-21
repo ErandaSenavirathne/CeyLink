@@ -1,113 +1,146 @@
-// frontend/src/components/ContactButtons.jsx
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react'
 
 export default function ContactButtons({ name, phone, label }) {
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-    const [actionTooltip, setActionTooltip] = useState({ visible: false, text: '' });
-    const [desktopCallVisible, setDesktopCallVisible] = useState(false);
-    const [copied, setCopied] = useState(false);
-    const containerRef = useRef(null);
 
-    // Handle responsive check
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    // Normalize Sri Lankan phone numbers
+    const normalizePhone = (rawPhone) => {
+        if (!rawPhone) return null
 
-    // Handle click outside to dismiss desktop popover
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (containerRef.current && !containerRef.current.contains(e.target)) {
-                setDesktopCallVisible(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+        const cleaned = rawPhone.trim()
 
-    if (!phone) {
-        return (
-            <div className="mt-2">
-                {label && <p className="text-sm font-medium text-gray-700 mb-1">{label}</p>}
-                <span className="text-xs text-gray-400">No contact number available</span>
-            </div>
-        );
-    }
-
-    const handleCallClick = (e) => {
-        e.preventDefault();
-        if (!isMobile) {
-            setDesktopCallVisible((prev) => !prev);
-            return;
+        // 0701234567 -> +94701234567
+        if (cleaned.startsWith('0')) {
+            return '+94' + cleaned.slice(1)
         }
 
-        // Mobile behavior
-        setActionTooltip({ visible: true, text: `Calling ${name} on ${phone}` });
-        setTimeout(() => {
-            setActionTooltip({ visible: false, text: '' });
-            window.location.href = `tel:${phone}`;
-        }, 1500);
-    };
+        // 94701234567 -> +94701234567
+        if (cleaned.startsWith('94') && !cleaned.startsWith('+')) {
+            return '+' + cleaned
+        }
 
-    const handleWhatsAppClick = (e) => {
-        e.preventDefault();
-        setActionTooltip({ visible: true, text: `Opening WhatsApp for ${name}` });
+        return cleaned
+    }
+
+    const normalizedPhone = normalizePhone(phone)
+
+    const [tooltip, setTooltip] = useState(null)
+    const [showDesktopCard, setShowDesktopCard] = useState(false)
+    const [copied, setCopied] = useState(false)
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+    const cardRef = useRef(null)
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768)
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
+
+    // Close desktop card when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (cardRef.current && !cardRef.current.contains(e.target)) {
+                setShowDesktopCard(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+    // Use normalized number for validation
+    if (!normalizedPhone) {
+        return (
+            <p className="text-xs text-gray-400 mt-2">
+                No contact number available
+            </p>
+        )
+    }
+
+    // Remove + for WhatsApp wa.me URL
+    const whatsappNumber = normalizedPhone.replace('+', '')
+
+    const handleCallClick = () => {
+        if (isMobile) {
+            setTooltip('call')
+
+            setTimeout(() => {
+                setTooltip(null)
+                window.location.href = `tel:${normalizedPhone}`
+            }, 1500)
+        } else {
+            setShowDesktopCard(prev => !prev)
+        }
+    }
+
+    const handleWhatsAppClick = () => {
+        setTooltip('whatsapp')
+
         setTimeout(() => {
-            setActionTooltip({ visible: false, text: '' });
-            const waNumber = phone.replace('+', '');
-            window.open(`https://wa.me/${waNumber}`, '_blank');
-        }, 1500);
-    };
+            setTooltip(null)
+            window.open(`https://wa.me/${whatsappNumber}`, '_blank')
+        }, 1500)
+    }
 
     const handleCopy = () => {
-        navigator.clipboard.writeText(phone);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 500);
-    };
+        navigator.clipboard.writeText(normalizedPhone)
+        setCopied(true)
+
+        setTimeout(() => setCopied(false), 2000)
+    }
 
     return (
-        <div className="mt-2 relative flex flex-col items-start" ref={containerRef}>
-            {label && <p className="text-sm font-medium text-gray-700 mb-2">{label}</p>}
+        <div className="mt-3">
 
-            <div className="flex gap-2 relative">
-                {/* Inline Action Confirmation Tooltip */}
-                {actionTooltip.visible && (
-                    <div className="absolute -top-10 left-0 bg-gray-800 text-white text-xs px-3 py-1.5 rounded-md whitespace-nowrap z-20 shadow-lg transition-opacity">
-                        {actionTooltip.text}
-                    </div>
-                )}
+            {label && (
+                <p className="text-xs font-medium text-gray-500 mb-2">
+                    {label}
+                </p>
+            )}
 
-                {/* Call Button */}
-                <a
-                    href={`tel:${phone}`}
-                    onClick={handleCallClick}
-                    className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-md text-sm font-semibold transition"
+            {/* Tooltip for mobile */}
+            {tooltip && (
+                <div className="bg-gray-800 text-white text-xs px-3 py-2 rounded-md mb-2 inline-block">
+                    {tooltip === 'call'
+                        ? `📞 Calling ${name} on ${normalizedPhone}...`
+                        : `💬 Opening WhatsApp for ${name}...`}
+                </div>
+            )}
+
+            {/* Desktop number card */}
+            {showDesktopCard && !isMobile && (
+                <div
+                    ref={cardRef}
+                    className="bg-gray-50 border border-gray-200 rounded-md px-4 py-3 mb-2 flex items-center gap-3"
                 >
-                    <span>📞</span> Call
-                </a>
+                    <span className="text-gray-800 font-semibold text-sm">
+                        📞 {normalizedPhone}
+                    </span>
 
-                {/* WhatsApp Button */}
+                    <button
+                        onClick={handleCopy}
+                        className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded transition"
+                    >
+                        {copied ? 'Copied!' : 'Copy'}
+                    </button>
+                </div>
+            )}
+
+            {/* Buttons */}
+            <div className="flex gap-2">
                 <button
-                    onClick={handleWhatsAppClick}
-                    className="flex items-center gap-1.5 bg-[#25D366] hover:bg-[#20b858] text-white px-4 py-1.5 rounded-md text-sm font-semibold transition"
+                    onClick={handleCallClick}
+                    className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-1.5 rounded-md transition"
                 >
-                    <span>💬</span> WhatsApp
+                    📞 Call
                 </button>
 
-                {/* Desktop Call Information Popover */}
-                {desktopCallVisible && !isMobile && (
-                    <div className="absolute top-10 left-0 bg-white border border-gray-200 shadow-xl rounded-md p-3 z-30 flex items-center gap-4 min-w-[240px]">
-                        <span className="text-lg font-medium text-gray-800 tracking-wide">📞 {phone}</span>
-                        <button
-                            onClick={handleCopy}
-                            className="ml-auto bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded-md font-medium transition"
-                        >
-                            {copied ? 'Copied!' : 'Copy'}
-                        </button>
-                    </div>
-                )}
+                <button
+                    onClick={handleWhatsAppClick}
+                    className="flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white text-sm px-3 py-1.5 rounded-md transition"
+                >
+                    💬 WhatsApp
+                </button>
             </div>
         </div>
-    );
+    )
 }

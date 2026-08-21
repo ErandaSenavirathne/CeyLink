@@ -129,9 +129,19 @@ export default function ProviderDashboard() {
                 <div>
                   <h3 className="font-semibold text-gray-800">{booking.service.title}</h3>
                   <p className="text-sm text-gray-500">Customer: {booking.customer.name}</p>
-                  {booking.customer.phone && (
-                    <p className="text-sm text-gray-500">📞 {booking.customer.phone}</p>
+
+                  {/* Ensure we only show it on allowed statuses */}
+                  {['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(booking.status) && (
+                    <div className="mt-3">
+
+                      <ContactButtons
+                        name={booking.customer.name}
+                        phone={booking.customer.phone}
+                        label="Contact Customer"
+                      />
+                    </div>
                   )}
+
                   {booking.customer.address && (
                     <p className="text-sm text-gray-500">🏠 {booking.customer.address}</p>
                   )}

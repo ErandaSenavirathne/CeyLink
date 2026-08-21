@@ -53,6 +53,8 @@ export default function ProviderDetail() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
+
+
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Profile header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -60,12 +62,20 @@ export default function ProviderDetail() {
             <div>
               <h1 className="text-2xl font-bold text-gray-800">{provider.user.name}</h1>
               <p className="text-gray-500">{provider.district} District</p>
+
             </div>
             {provider.nicVerified && (
               <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-medium">
                 ✓ NIC Verified
               </span>
             )}
+
+            <ContactButtons
+              name={provider.user.name}
+              phone={provider.user.phone}
+              label="Contact Provider"
+            />
+
           </div>
 
           {provider.bio && <p className="text-gray-600 mt-4">{provider.bio}</p>}

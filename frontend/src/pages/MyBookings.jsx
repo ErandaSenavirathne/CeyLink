@@ -98,6 +98,13 @@ export default function MyBookings() {
         <div className="space-y-4">
           {bookings.map((booking) => (
             <div key={booking.id} className="bg-white rounded-lg shadow-sm p-5">
+
+              <ContactButtons
+                name={booking.provider.user.name}
+                phone={booking.provider.user.phone}
+                label="Contact Provider"
+              />
+
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <h3 className="font-semibold text-gray-800">{booking.service.title}</h3>
