@@ -1,4 +1,5 @@
 const prisma = require('../utils/prismaClient')
+const cloudinary = require('../utils/cloudinary')
 
 // GET all providers (with optional filters)
 exports.getProviders = async (req, res) => {
@@ -79,7 +80,7 @@ exports.getProviderById = async (req, res) => {
 // UPDATE provider profile (protected - only the provider themselves)
 exports.updateProvider = async (req, res) => {
   try {
-    const { bio, district, hourlyRate, nicNumber } = req.body
+    const { bio, district, hourlyRate, skills, nicNumber } = req.body
 
     const provider = await prisma.provider.findUnique({
       where: { userId: req.user.userId }
@@ -91,12 +92,80 @@ exports.updateProvider = async (req, res) => {
 
     const updated = await prisma.provider.update({
       where: { userId: req.user.userId },
-      data: { bio, district, hourlyRate, nicNumber }
+      data: { 
+        bio, 
+        district, 
+        hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null, 
+        skills: skills || [],
+        nicNumber 
+      }
     })
 
     res.json({ message: 'Profile updated', provider: updated })
   } catch (error) {
     res.status(500).json({ error: 'Update failed', details: error.message })
+  }
+}
+
+// GET currently logged in provider profile
+exports.getMyProviderProfile = async (req, res) => {
+  try {
+    const provider = await prisma.provider.findUnique({
+      where: { userId: req.user.userId },
+      include: {
+        user: { select: { name: true, email: true, phone: true } },
+        services: true
+      }
+    })
+    
+    if (!provider) {
+      return res.status(404).json({ error: 'Provider profile not found' })
+    }
+    
+    res.json(provider)
+  } catch (error) {
+    res.status(500).json({ error: 'Could not fetch profile', details: error.message })
+  }
+}
+
+// UPDATE profile photo (protected - provider only)
+exports.updateProfilePhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' })
+    }
+
+    const provider = await prisma.provider.findUnique({
+      where: { userId: req.user.userId }
+    })
+
+    if (!provider) {
+      return res.status(404).json({ error: 'Provider profile not found' })
+    }
+
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: 'ceylink_profiles' },
+      async (error, result) => {
+        if (error) {
+          return res.status(500).json({ error: 'Failed to upload image to Cloudinary', details: error.message })
+        }
+        
+        const updated = await prisma.provider.update({
+          where: { id: provider.id },
+          data: { profilePhoto: result.secure_url }
+        })
+        
+        res.json({ message: 'Profile photo updated', profilePhoto: updated.profilePhoto })
+      }
+    )
+
+    const stream = require('stream')
+    const bufferStream = new stream.PassThrough()
+    bufferStream.end(req.file.buffer)
+    bufferStream.pipe(uploadStream)
+
+  } catch (error) {
+    res.status(500).json({ error: 'Photo upload failed', details: error.message })
   }
 }
 

@@ -30,7 +30,10 @@ export default function Navbar() {
           <Link to="/my-bookings" className="hover:text-accent transition">{t('nav.myBookings')}</Link>
         )}
         {user?.role === 'PROVIDER' && (
-          <Link to="/dashboard" className="hover:text-accent transition">{t('nav.dashboard')}</Link>
+          <>
+            <Link to="/dashboard" className="hover:text-accent transition">{t('nav.dashboard')}</Link>
+            <Link to="/provider-profile" className="hover:text-accent transition">My Profile</Link>
+          </>
         )}
         {user?.role === 'ADMIN' && (
           <Link to="/admin" className="hover:text-accent transition">Admin Panel</Link>
