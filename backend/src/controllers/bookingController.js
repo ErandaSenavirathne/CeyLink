@@ -120,8 +120,10 @@ exports.getProviderBookings = async (req, res) => {
     })
 
     const sanitizedBookings = bookings.map(booking => {
-      if (booking.status === 'PENDING' && booking.customer) {
+      if (['PENDING', 'CANCELLED'].includes(booking.status) && booking.customer) {
+
         booking.customer.address = null;
+        booking.customer.phone = null;
       }
       return booking;
     })

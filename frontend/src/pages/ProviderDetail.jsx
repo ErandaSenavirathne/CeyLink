@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
+import ContactButtons from '../components/ContactButtons'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
 

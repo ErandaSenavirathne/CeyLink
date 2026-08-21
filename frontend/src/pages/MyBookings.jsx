@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
+import ContactButtons from '../components/ContactButtons'
 
 const statusStyles = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -122,11 +123,11 @@ export default function MyBookings() {
               <div className="mt-4 flex gap-2">
                 {booking.status === 'PENDING' && (
                   <button
-                  onClick={() => handleCancel(booking.id)}
-                  className="text-sm text-red-600 border border-red-200 px-3 py-1.5 rounded-md hover:bg-red-50 transition"
-                >
-                  {t('myBookings.cancelBooking')}
-                </button>
+                    onClick={() => handleCancel(booking.id)}
+                    className="text-sm text-red-600 border border-red-200 px-3 py-1.5 rounded-md hover:bg-red-50 transition"
+                  >
+                    {t('myBookings.cancelBooking')}
+                  </button>
                 )}
 
                 {booking.status === 'COMPLETED' && !booking.review && reviewingId !== booking.id && (
@@ -140,7 +141,7 @@ export default function MyBookings() {
 
                 {booking.status === 'COMPLETED' && booking.review && (
                   <p className="text-sm text-green-600">✓ {t('myBookings.reviewed')}</p>
-                  )}
+                )}
               </div>
 
               {/* Inline review form */}

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
+import ContactButtons from '../components/ContactButtons'
 
 const statusStyles = {
   PENDING: 'bg-yellow-100 text-yellow-700',
