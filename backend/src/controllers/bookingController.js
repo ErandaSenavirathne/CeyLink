@@ -6,7 +6,7 @@ const prisma = require('../utils/prismaClient')
 exports.createBooking = async (req, res) => {
   try {
     const errors = validationResult(req)
-    
+
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() })
     }
@@ -23,8 +23,8 @@ exports.createBooking = async (req, res) => {
     }
 
     if (service.provider.userId === req.user.userId) {
-  return res.status(403).json({ error: 'You cannot book your own service' })
-}
+      return res.status(403).json({ error: 'You cannot book your own service' })
+    }
 
     // Check if the provider is already booked for this date and time slot
     const existingBooking = await prisma.booking.findFirst({
@@ -127,6 +127,7 @@ exports.getProviderBookings = async (req, res) => {
     })
 
     res.json(sanitizedBookings)
+
   } catch (error) {
     res.status(500).json({ error: 'Could not fetch bookings', details: error.message })
   }
@@ -144,24 +145,24 @@ exports.updateBookingStatus = async (req, res) => {
     }
 
     // Verify this booking belongs to the logged-in provider
-const provider = await prisma.provider.findUnique({
-  where: { userId: req.user.userId }
-})
+    const provider = await prisma.provider.findUnique({
+      where: { userId: req.user.userId }
+    })
 
-// If no provider profile found, this user is not a provider
-if (!provider) {
-  return res.status(403).json({ error: 'Only service providers can update booking status' })
-}
+    // If no provider profile found, this user is not a provider
+    if (!provider) {
+      return res.status(403).json({ error: 'Only service providers can update booking status' })
+    }
 
-const booking = await prisma.booking.findUnique({ where: { id } })
+    const booking = await prisma.booking.findUnique({ where: { id } })
 
-if (!booking) {
-  return res.status(404).json({ error: 'Booking not found' })
-}
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' })
+    }
 
-if (booking.providerId !== provider.id) {
-  return res.status(403).json({ error: 'You are not authorized to update this booking' })
-}
+    if (booking.providerId !== provider.id) {
+      return res.status(403).json({ error: 'You are not authorized to update this booking' })
+    }
 
     const updated = await prisma.booking.update({
       where: { id },

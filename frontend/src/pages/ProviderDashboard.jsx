@@ -131,13 +131,9 @@ export default function ProviderDashboard() {
                   {booking.customer.phone && (
                     <p className="text-sm text-gray-500">📞 {booking.customer.phone}</p>
                   )}
-
-                  {booking.customer.address && booking.status !== 'PENDING' && (
-                    <p className="text-sm text-gray-500">
-                      📍 {booking.customer.address}
-                    </p>
+                  {booking.customer.address && (
+                    <p className="text-sm text-gray-500">🏠 {booking.customer.address}</p>
                   )}
-
                 </div>
                 <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusStyles[booking.status]}`}>
                   {t(`status.${booking.status}`)}
