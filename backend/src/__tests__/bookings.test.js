@@ -97,7 +97,7 @@ describe('Booking Endpoints', () => {
           paymentMode: 'CASH',
           notes: 'Kitchen sink is leaking'
         })
-         console.log('Booking create response:', JSON.stringify(res.body, null, 2))
+      console.log('Booking create response:', JSON.stringify(res.body, null, 2))
 
       expect(res.statusCode).toBe(201)
       expect(res.body.booking.status).toBe('PENDING')
@@ -289,6 +289,57 @@ describe('Booking Endpoints', () => {
           paymentMode: 'CASH'
         })
       bookingId = res.body.booking.id
+    })
+
+    it('should prevent provider from starting a second job while one is IN_PROGRESS', async () => {
+      // Create two bookings
+      const booking1Res = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          serviceId,
+          bookingDate: '2026-12-01',
+          timeSlot: '10:00 AM - 12:00 PM',
+          paymentMode: 'CASH'
+        })
+      const booking1Id = booking1Res.body.booking.id
+
+      const booking2Res = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          serviceId,
+          bookingDate: '2026-12-02',
+          timeSlot: '2:00 PM - 4:00 PM',
+          paymentMode: 'CASH'
+        })
+      const booking2Id = booking2Res.body.booking.id
+
+      // Confirm both bookings
+      await request(app)
+        .patch(`/api/bookings/${booking1Id}/status`)
+        .set('Authorization', `Bearer ${providerToken}`)
+        .send({ status: 'CONFIRMED' })
+
+      await request(app)
+        .patch(`/api/bookings/${booking2Id}/status`)
+        .set('Authorization', `Bearer ${providerToken}`)
+        .send({ status: 'CONFIRMED' })
+
+      // Start first job
+      await request(app)
+        .patch(`/api/bookings/${booking1Id}/status`)
+        .set('Authorization', `Bearer ${providerToken}`)
+        .send({ status: 'IN_PROGRESS' })
+
+      // Try to start second job — should be blocked
+      const res = await request(app)
+        .patch(`/api/bookings/${booking2Id}/status`)
+        .set('Authorization', `Bearer ${providerToken}`)
+        .send({ status: 'IN_PROGRESS' })
+
+      expect(res.statusCode).toBe(400)
+      expect(res.body.error).toMatch(/already have a job in progress/i)
     })
 
     it('should allow provider to confirm a booking', async () => {

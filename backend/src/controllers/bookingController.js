@@ -156,6 +156,23 @@ exports.updateBookingStatus = async (req, res) => {
       return res.status(403).json({ error: 'Only service providers can update booking status' })
     }
 
+    // Prevent provider from starting a new job if one is already IN_PROGRESS
+    if (status === 'IN_PROGRESS') {
+      const activeJob = await prisma.booking.findFirst({
+        where: {
+          providerId: provider.id,
+          status: 'IN_PROGRESS',
+          id: { not: id } // exclude the current booking
+        }
+      })
+
+      if (activeJob) {
+        return res.status(400).json({
+          error: 'You already have a job in progress. Please complete it before starting a new one.'
+        })
+      }
+    }
+
     const booking = await prisma.booking.findUnique({ where: { id } })
 
     if (!booking) {

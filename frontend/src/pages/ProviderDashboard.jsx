@@ -27,6 +27,8 @@ export default function ProviderDashboard() {
   const [error, setError] = useState('')
   const [updatingId, setUpdatingId] = useState(null)
   const [filter, setFilter] = useState('ALL')
+  // Check if provider has any job currently in progress
+  const hasActiveJob = bookings.some(b => b.status === 'IN_PROGRESS')
 
   useEffect(() => {
     fetchBookings()
@@ -129,26 +131,21 @@ export default function ProviderDashboard() {
                 <div>
                   <h3 className="font-semibold text-gray-800">{booking.service.title}</h3>
                   <p className="text-sm text-gray-500">Customer: {booking.customer.name}</p>
-
-                  {/* Ensure we only show it on allowed statuses */}
-                  {['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'].includes(booking.status) && (
-                    <div className="mt-3">
-
-                      <ContactButtons
-                        name={booking.customer.name}
-                        phone={booking.customer.phone}
-                        label="Contact Customer"
-                      />
-                    </div>
-                  )}
-
-                  {booking.customer.address && (
-                    <p className="text-sm text-gray-500">🏠 {booking.customer.address}</p>
+                  {booking.customer.phone && (
+                    <p className="text-sm text-gray-500">📞 {booking.customer.phone}</p>
                   )}
                 </div>
-                <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusStyles[booking.status]}`}>
-                  {t(`status.${booking.status}`)}
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusStyles[booking.status]}`}>
+                    {t(`status.${booking.status}`)}
+                  </span>
+                  {/* Active job indicator */}
+                  {booking.status === 'IN_PROGRESS' && (
+                    <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium animate-pulse">
+                      🔧 Active Job
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mt-3">
@@ -164,17 +161,35 @@ export default function ProviderDashboard() {
 
               {/* Action buttons based on current status */}
               {nextActions[booking.status] && (
-                <div className="mt-4 flex gap-2">
-                  {nextActions[booking.status].map((action) => (
-                    <button
-                      key={action.value}
-                      onClick={() => updateStatus(booking.id, action.value)}
-                      disabled={updatingId === booking.id}
-                      className={`text-sm px-4 py-1.5 rounded-md font-medium transition disabled:opacity-50 ${action.style}`}
-                    >
-                      {updatingId === booking.id ? t('dashboard.updating') : t(action.labelKey)}
-                    </button>
-                  ))}
+                <div className="mt-4 flex flex-col gap-2">
+                  {nextActions[booking.status].map((action) => {
+                    const isStartJob = action.value === 'IN_PROGRESS'
+                    const isBlocked = isStartJob && hasActiveJob
+
+                    return (
+                      <div key={action.value}>
+                        <button
+                          onClick={() => !isBlocked && updateStatus(booking.id, action.value)}
+                          disabled={updatingId === booking.id || isBlocked}
+                          className={`text-sm px-4 py-1.5 rounded-md font-medium transition disabled:opacity-50 ${isBlocked
+                              ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                              : action.style
+                            }`}
+                        >
+                          {updatingId === booking.id
+                            ? t('dashboard.updating')
+                            : t(action.labelKey)}
+                        </button>
+
+                        {/* Warning message shown only when Start Job is blocked */}
+                        {isBlocked && (
+                          <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                            ⚠️ Complete your active job before starting this one
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
