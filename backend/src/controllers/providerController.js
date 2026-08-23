@@ -132,7 +132,7 @@ exports.getProviderById = async (req, res) => {
 // UPDATE provider profile (protected - only the provider themselves)
 exports.updateProvider = async (req, res) => {
   try {
-    const { bio, district, hourlyRate, skills, nicNumber } = req.body
+    const { bio, district, skills, nicNumber } = req.body
 
     if (nicNumber) {
       const oldFormat = /^[0-9]{9}[VvXx]$/
@@ -171,7 +171,6 @@ exports.updateProvider = async (req, res) => {
       data: {
         bio,
         district,
-        hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
         skills: skills || [],
         nicNumber
       }

@@ -187,12 +187,7 @@ export default function ProviderDetail() {
               </div>
             </div>
 
-            {/* Hourly rate */}
-            {provider.hourlyRate && (
-              <p className="text-primary font-bold text-lg mb-4">
-                From Rs. {provider.hourlyRate.toLocaleString()}/hr
-              </p>
-            )}
+
 
             {/* Contact buttons — only for customers */}
             {user?.role === 'CUSTOMER' && (

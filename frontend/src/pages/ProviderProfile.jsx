@@ -30,7 +30,6 @@ export default function ProviderProfile() {
 
   const [formData, setFormData] = useState({
     bio: '',
-    hourlyRate: '',
     district: '',
     skills: [],
     nicNumber: ''
@@ -75,7 +74,6 @@ export default function ProviderProfile() {
       const provider = res.data
       setFormData({
         bio: provider.bio || '',
-        hourlyRate: provider.hourlyRate || '',
         district: provider.district || '',
         skills: provider.skills || [],
         nicNumber: provider.nicNumber || ''
@@ -339,32 +337,17 @@ export default function ProviderProfile() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Hourly Rate (LKR)</label>
-                      <input
-                        name="hourlyRate"
-                        type="number"
-                        min="0"
-                        value={formData.hourlyRate}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
-                        placeholder="e.g. 1500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
-                      <select
-                        name="district"
-                        value={formData.district}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
-                      >
-                        <option value="">Select District</option>
-                        {districts.map(d => <option key={d} value={d}>{d}</option>)}
-                      </select>
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
+                    <select
+                      name="district"
+                      value={formData.district}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
+                    >
+                      <option value="">Select District</option>
+                      {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
                   </div>
 
                   <div>

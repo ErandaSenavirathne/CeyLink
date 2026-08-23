@@ -294,14 +294,14 @@ export default function Browse() {
 
               {/* Card bottom section */}
               <div className="px-5 pb-4 flex items-center justify-between border-t border-gray-50 pt-3">
-                {/* Hourly rate */}
+                {/* Services summary */}
                 <div>
-                  {provider.hourlyRate ? (
+                  {provider.services.length > 0 ? (
                     <p className="text-sm font-semibold text-primary">
-                      From Rs. {provider.hourlyRate.toLocaleString()}/hr
+                      {provider.services.length} Service{provider.services.length !== 1 ? 's' : ''}
                     </p>
                   ) : (
-                    <p className="text-xs text-gray-400">Price on request</p>
+                    <p className="text-xs text-gray-400">Services coming soon</p>
                   )}
                 </div>
 
