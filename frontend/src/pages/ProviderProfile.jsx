@@ -36,6 +36,18 @@ export default function ProviderProfile() {
     nicNumber: ''
   })
   
+  const [nicError, setNicError] = useState(null)
+
+  const validateNIC = (nic) => {
+    if (!nic) return null // NIC is optional
+    const oldFormat = /^[0-9]{9}[VvXx]$/
+    const newFormat = /^[0-9]{12}$/
+    if (!oldFormat.test(nic) && !newFormat.test(nic)) {
+      return 'Invalid NIC. Use format 123456789V or 200012345678'
+    }
+    return null
+  }
+
   const [skillInput, setSkillInput] = useState('')
   const [profilePhoto, setProfilePhoto] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
@@ -87,6 +99,9 @@ export default function ProviderProfile() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
+    if (e.target.name === 'nicNumber') {
+      setNicError(null)
+    }
   }
 
   const handleAddSkill = (e) => {
@@ -117,13 +132,24 @@ export default function ProviderProfile() {
 
   const handleSaveProfile = async (e) => {
     e.preventDefault()
+
+    const error = validateNIC(formData.nicNumber)
+    if (error) {
+      setNicError(error)
+      return
+    }
+
     setSaving(true)
     setMessage({ type: '', text: '' })
     try {
       await api.put('/providers/profile', formData)
       setMessage({ type: 'success', text: 'Profile updated successfully!' })
     } catch (err) {
-      setMessage({ type: 'error', text: err.response?.data?.error || 'Failed to update profile.' })
+      if (err.response?.status === 400 && err.response?.data?.error?.includes('already registered')) {
+        setNicError(err.response.data.error)
+      } else {
+        setMessage({ type: 'error', text: err.response?.data?.error || 'Failed to update profile.' })
+      }
     } finally {
       setSaving(false)
     }
@@ -348,9 +374,12 @@ export default function ProviderProfile() {
                       type="text"
                       value={formData.nicNumber}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
+                      onBlur={() => setNicError(validateNIC(formData.nicNumber))}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-accent ${nicError ? 'border-red-500' : 'border-gray-300'}`}
                       placeholder="Enter your National Identity Card number"
                     />
+                    {nicError && <p className="text-red-500 text-sm mt-1">{nicError}</p>}
+                    <p className="text-gray-500 text-xs mt-1">Format: 123456789V or 200012345678 (optional)</p>
                   </div>
 
                   <div>
@@ -395,7 +424,7 @@ export default function ProviderProfile() {
                   <div className="pt-4 border-t border-gray-100">
                     <button
                       type="submit"
-                      disabled={saving}
+                      disabled={saving || !!nicError}
                       className="w-full bg-primary text-white py-2.5 rounded-md font-semibold hover:bg-blue-900 transition disabled:opacity-50 text-lg"
                     >
                       {saving ? 'Saving Profile...' : 'Save Profile'}

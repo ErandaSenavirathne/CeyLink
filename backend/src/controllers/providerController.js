@@ -134,6 +134,30 @@ exports.updateProvider = async (req, res) => {
   try {
     const { bio, district, hourlyRate, skills, nicNumber } = req.body
 
+    if (nicNumber) {
+      const oldFormat = /^[0-9]{9}[VvXx]$/
+      const newFormat = /^[0-9]{12}$/
+
+      if (!oldFormat.test(nicNumber) && !newFormat.test(nicNumber)) {
+        return res.status(400).json({
+          error: 'Invalid NIC format. Use 9 digits + V/X (e.g. 123456789V) or 12 digits (e.g. 200012345678).'
+        })
+      }
+
+      const existingNIC = await prisma.provider.findFirst({
+        where: {
+          nicNumber,
+          NOT: { userId: req.user.userId } // exclude the current provider
+        }
+      })
+
+      if (existingNIC) {
+        return res.status(400).json({
+          error: 'This NIC number is already registered with another provider account.'
+        })
+      }
+    }
+
     const provider = await prisma.provider.findUnique({
       where: { userId: req.user.userId }
     })

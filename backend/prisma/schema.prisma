@@ -34,7 +34,7 @@ model Provider {
   userId             String             @unique
   user               User               @relation(fields: [userId], references: [id])
   bio                String?
-  nicNumber          String?
+  nicNumber          String?            @unique
   nicVerified        Boolean            @default(false)
   verificationStatus VerificationStatus @default(PENDING)
   district           String
