@@ -15,22 +15,54 @@ exports.getProviders = async (req, res) => {
         })
       },
       include: {
-        user: { select: { name: true, phone: true } },
+        user: { select: { name: true, phone: true, createdAt: true } },
         services: true,
-        reviews: { select: { rating: true } }
+        reviews: { select: { rating: true } },
+        _count: {
+          select: {
+            reviews: true,
+            bookings: true
+          }
+        },
+        bookings: {
+          select: { id: true, status: true }
+        }
       }
     })
 
-    // Calculate average rating for each provider
-    const providersWithRating = providers.map(provider => {
+    const providersWithStats = providers.map(provider => {
       const ratings = provider.reviews.map(r => r.rating)
       const avgRating = ratings.length > 0
         ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
         : null
-      return { ...provider, avgRating, reviewCount: ratings.length }
+      const completedJobs = provider.bookings.filter(
+        b => b.status === 'COMPLETED'
+      ).length
+      const isBusy = provider.bookings.some(
+        b => b.status === 'IN_PROGRESS'
+      )
+
+      return {
+        id: provider.id,
+        userId: provider.userId,
+        bio: provider.bio,
+        district: provider.district,
+        hourlyRate: provider.hourlyRate,
+        profilePhoto: provider.profilePhoto,
+        nicVerified: provider.nicVerified,
+        verificationStatus: provider.verificationStatus,
+        skills: provider.skills,
+        createdAt: provider.createdAt,
+        user: provider.user,
+        services: provider.services,
+        avgRating,
+        reviewCount: ratings.length,
+        completedJobs,
+        isBusy
+      }
     })
 
-    res.json(providersWithRating)
+    res.json(providersWithStats)
   } catch (error) {
     res.status(500).json({ error: 'Could not fetch providers', details: error.message })
   }
@@ -92,12 +124,12 @@ exports.updateProvider = async (req, res) => {
 
     const updated = await prisma.provider.update({
       where: { userId: req.user.userId },
-      data: { 
-        bio, 
-        district, 
-        hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null, 
+      data: {
+        bio,
+        district,
+        hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
         skills: skills || [],
-        nicNumber 
+        nicNumber
       }
     })
 
@@ -117,11 +149,11 @@ exports.getMyProviderProfile = async (req, res) => {
         services: true
       }
     })
-    
+
     if (!provider) {
       return res.status(404).json({ error: 'Provider profile not found' })
     }
-    
+
     res.json(provider)
   } catch (error) {
     res.status(500).json({ error: 'Could not fetch profile', details: error.message })
@@ -149,12 +181,12 @@ exports.updateProfilePhoto = async (req, res) => {
         if (error) {
           return res.status(500).json({ error: 'Failed to upload image to Cloudinary', details: error.message })
         }
-        
+
         const updated = await prisma.provider.update({
           where: { id: provider.id },
           data: { profilePhoto: result.secure_url }
         })
-        
+
         res.json({ message: 'Profile photo updated', profilePhoto: updated.profilePhoto })
       }
     )
