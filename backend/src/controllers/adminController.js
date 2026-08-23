@@ -106,3 +106,51 @@ exports.getBookings = async (req, res) => {
     res.status(500).json({ error: 'Could not fetch bookings', details: error.message })
   }
 }
+
+// GET pending services
+exports.getPendingServices = async (req, res) => {
+  try {
+    const services = await prisma.service.findMany({
+      where: { status: 'PENDING' },
+      include: {
+        provider: {
+          include: { user: { select: { name: true, email: true } } }
+        }
+      },
+      orderBy: { createdAt: 'asc' }
+    })
+    res.json(services)
+  } catch (error) {
+    res.status(500).json({ error: 'Could not fetch pending services', details: error.message })
+  }
+}
+
+// REVIEW a service
+exports.reviewService = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { action, rejectionReason } = req.body
+
+    if (action !== 'APPROVE' && action !== 'REJECT') {
+      return res.status(400).json({ error: 'Invalid action' })
+    }
+
+    if (action === 'REJECT' && (!rejectionReason || !rejectionReason.trim())) {
+      return res.status(400).json({ error: 'Rejection reason is required' })
+    }
+
+    const data = {
+      status: action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
+      rejectionReason: action === 'APPROVE' ? null : rejectionReason
+    }
+
+    const service = await prisma.service.update({
+      where: { id },
+      data
+    })
+
+    res.json({ message: `Service ${data.status.toLowerCase()}`, service })
+  } catch (error) {
+    res.status(500).json({ error: 'Could not review service', details: error.message })
+  }
+}

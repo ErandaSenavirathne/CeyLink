@@ -8,5 +8,7 @@ router.get('/providers', adminAuth, adminController.getProviders)
 router.patch('/providers/:id/verify', adminAuth, adminController.updateProviderVerification)
 router.get('/users', adminAuth, adminController.getUsers)
 router.get('/bookings', adminAuth, adminController.getBookings)
+router.get('/services/pending', adminAuth, adminController.getPendingServices)
+router.patch('/services/:id/review', adminAuth, adminController.reviewService)
 
 module.exports = router

@@ -50,16 +50,18 @@ model Provider {
 }
 
 model Service {
-  id          String    @id @default(uuid())
-  providerId  String
-  provider    Provider  @relation(fields: [providerId], references: [id])
-  category    String
-  title       String
-  description String?
-  basePrice   Float
-  createdAt   DateTime  @default(now())
+  id              String        @id @default(uuid())
+  providerId      String
+  provider        Provider      @relation(fields: [providerId], references: [id])
+  category        String
+  title           String
+  description     String?
+  basePrice       Float
+  status          ServiceStatus @default(PENDING)
+  rejectionReason String?
+  createdAt       DateTime      @default(now())
 
-  bookings    Booking[]
+  bookings        Booking[]
 }
 
 model Booking {
@@ -140,4 +142,10 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   REFUNDED
+}
+
+enum ServiceStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

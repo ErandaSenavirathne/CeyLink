@@ -22,6 +22,8 @@ export default function AdminDashboard() {
   const [providers, setProviders] = useState([])
   const [users, setUsers] = useState([])
   const [bookings, setBookings] = useState([])
+  const [pendingServices, setPendingServices] = useState([])
+  const [rejectReasons, setRejectReasons] = useState({})
   const [activeTab, setActiveTab] = useState('overview')
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState(null)
@@ -34,16 +36,18 @@ export default function AdminDashboard() {
   const fetchAll = async () => {
     setLoading(true)
     try {
-      const [statsRes, providersRes, usersRes, bookingsRes] = await Promise.all([
+      const [statsRes, providersRes, usersRes, bookingsRes, servicesRes] = await Promise.all([
         api.get('/admin/stats'),
         api.get('/admin/providers'),
         api.get('/admin/users'),
-        api.get('/admin/bookings')
+        api.get('/admin/bookings'),
+        api.get('/admin/services/pending')
       ])
       setStats(statsRes.data)
       setProviders(providersRes.data)
       setUsers(usersRes.data)
       setBookings(bookingsRes.data)
+      setPendingServices(servicesRes.data)
     } catch (err) {
       if (err.response?.status === 403) {
         alert('Admin access required')
@@ -68,7 +72,27 @@ export default function AdminDashboard() {
     }
   }
 
-  const tabs = ['overview', 'providers', 'users', 'bookings']
+  const handleReviewService = async (serviceId, action) => {
+    setUpdatingId(serviceId)
+    try {
+      await api.patch(`/admin/services/${serviceId}/review`, {
+        action,
+        rejectionReason: action === 'REJECT' ? rejectReasons[serviceId] : undefined
+      })
+      setRejectReasons(prev => {
+        const next = { ...prev }
+        delete next[serviceId]
+        return next
+      })
+      await fetchAll()
+    } catch (err) {
+      alert(err.response?.data?.error || 'Review failed')
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const tabs = ['overview', 'providers', 'services', 'users', 'bookings']
 
   if (loading) {
     return (
@@ -105,6 +129,11 @@ export default function AdminDashboard() {
                   {stats.pendingProviders}
                 </span>
               )}
+              {tab === 'services' && pendingServices.length > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                  {pendingServices.length}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -118,6 +147,7 @@ export default function AdminDashboard() {
                 { label: 'Total Providers', value: stats.totalProviders, color: 'text-purple-600' },
                 { label: 'Total Bookings', value: stats.totalBookings, color: 'text-amber-600' },
                 { label: 'Pending Verification', value: stats.pendingProviders, color: 'text-red-600' },
+                { label: 'Pending Services', value: pendingServices.length, color: 'text-orange-600' },
                 { label: 'Completed Jobs', value: stats.completedBookings, color: 'text-green-600' },
                 { label: 'Total Revenue', value: `Rs. ${stats.totalRevenue.toLocaleString()}`, color: 'text-primary' },
               ].map((stat) => (
@@ -221,6 +251,88 @@ export default function AdminDashboard() {
                     Approve instead
                   </button>
                 )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Services Tab */}
+        {activeTab === 'services' && (
+          <div className="space-y-4">
+            {pendingServices.length === 0 && (
+              <div className="bg-green-50 text-green-700 p-4 rounded-lg text-center font-medium">
+                All services reviewed — nothing pending
+              </div>
+            )}
+            {pendingServices.map(service => (
+              <div key={service.id} className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">{service.title}</h3>
+                    <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded mt-1 inline-block">
+                      {service.category}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-primary">Rs. {service.basePrice}</p>
+                    <p className="text-xs text-gray-500 mt-1">Submitted: {new Date(service.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                
+                {service.description && (
+                  <p className="text-sm text-gray-600 mb-4">{service.description}</p>
+                )}
+                
+                <div className="text-sm text-gray-500 mb-4 bg-gray-50 p-2 rounded border border-gray-100">
+                  <span className="font-medium text-gray-700">Provider:</span> {service.provider.user.name} ({service.provider.user.email})
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleReviewService(service.id, 'APPROVE')}
+                      disabled={updatingId === service.id}
+                      className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-green-700 transition disabled:opacity-50 w-32"
+                    >
+                      {updatingId === service.id ? 'Updating...' : 'Approve'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (rejectReasons[service.id] === undefined) {
+                          setRejectReasons(prev => ({ ...prev, [service.id]: '' }))
+                        } else {
+                          setRejectReasons(prev => {
+                            const next = { ...prev }
+                            delete next[service.id]
+                            return next
+                          })
+                        }
+                      }}
+                      className="border border-red-500 text-red-600 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-50 transition w-32"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                  
+                  {rejectReasons[service.id] !== undefined && (
+                    <div className="mt-3 flex flex-col gap-2 max-w-md">
+                      <textarea
+                        placeholder="Enter reason for rejection (required)..."
+                        value={rejectReasons[service.id]}
+                        onChange={e => setRejectReasons(prev => ({ ...prev, [service.id]: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:border-red-400"
+                        rows="2"
+                      />
+                      <button
+                        onClick={() => handleReviewService(service.id, 'REJECT')}
+                        disabled={!rejectReasons[service.id].trim() || updatingId === service.id}
+                        className="bg-red-600 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-700 transition disabled:opacity-50 self-start"
+                      >
+                        Confirm Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>

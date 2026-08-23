@@ -27,12 +27,24 @@ export default function ProviderDashboard() {
   const [error, setError] = useState('')
   const [updatingId, setUpdatingId] = useState(null)
   const [filter, setFilter] = useState('ALL')
+  const [myServices, setMyServices] = useState([])
+
   // Check if provider has any job currently in progress
   const hasActiveJob = bookings.some(b => b.status === 'IN_PROGRESS')
 
   useEffect(() => {
     fetchBookings()
+    fetchMyServices()
   }, [])
+
+  const fetchMyServices = async () => {
+    try {
+      const res = await api.get('/providers/my-services')
+      setMyServices(res.data)
+    } catch {
+      // ignore
+    }
+  }
 
   const fetchBookings = async () => {
     setLoading(true)
@@ -85,6 +97,19 @@ export default function ProviderDashboard() {
       <div className="max-w-3xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-1">{t('dashboard.title')}</h1>
         <p className="text-gray-500 mb-6">{t('dashboard.subtitle')}</p>
+
+        {/* Show this banner when provider has no approved services */}
+        {!loading && myServices.filter(s => s.status === 'APPROVED').length === 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6">
+            <h3 className="font-semibold text-blue-800 mb-3">👋 Welcome to CeyLink! Complete your setup</h3>
+            <div className="space-y-2 text-sm">
+              <p className="text-green-600">✓ Account created successfully</p>
+              <p className="text-gray-600">○ <a href="/provider-profile" className="text-blue-600 underline">Add your profile info</a> (bio, photo, skills)</p>
+              <p className="text-gray-600">○ <a href="/provider-profile" className="text-blue-600 underline">Add at least one service</a> for admin review</p>
+              <p className="text-gray-600">○ Wait for admin verification to go live</p>
+            </div>
+          </div>
+        )}
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3 mb-6">

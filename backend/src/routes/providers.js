@@ -14,9 +14,12 @@ const serviceValidation = [
 router.get('/', providerController.getProviders)
 router.get('/categories', providerController.getCategories)
 router.get('/my-profile', authMiddleware, providerController.getMyProviderProfile)
+router.get('/my-services', authMiddleware, providerController.getMyServices)
 router.get('/:id', providerController.getProviderById)
 router.put('/profile', authMiddleware, providerController.updateProvider)
 router.post('/profile-photo', authMiddleware, upload.single('photo'), providerController.updateProfilePhoto)
 router.post('/services', authMiddleware, serviceValidation, providerController.addService)
+router.put('/services/:id', authMiddleware, serviceValidation, providerController.updateService)
+router.delete('/services/:id', authMiddleware, providerController.deleteService)
 
 module.exports = router

@@ -11,12 +11,12 @@ exports.getProviders = async (req, res) => {
         ...(district && { district }),
         verificationStatus: 'VERIFIED',
         ...(category && {
-          services: { some: { category } }
+          services: { some: { category, status: 'APPROVED' } }
         })
       },
       include: {
         user: { select: { name: true, phone: true, createdAt: true } },
-        services: true,
+        services: { where: { status: 'APPROVED' } },
         reviews: { select: { rating: true } },
         _count: {
           select: {
@@ -91,7 +91,7 @@ exports.getProviderById = async (req, res) => {
       where: { id },
       include: {
         user: { select: { name: true, phone: true, email: true, createdAt: true } },
-        services: true,
+        services: { where: { status: 'APPROVED' } },
         reviews: {
           include: { customer: { select: { name: true } } },
           orderBy: { createdAt: 'desc' }
@@ -240,12 +240,114 @@ exports.addService = async (req, res) => {
         category,
         title,
         description,
-        basePrice: parseFloat(basePrice)
+        basePrice: parseFloat(basePrice),
+        status: 'PENDING'
       }
     })
 
-    res.status(201).json({ message: 'Service added', service })
+    res.status(201).json({ message: 'Service submitted for admin review', service })
   } catch (error) {
     res.status(500).json({ error: 'Could not add service', details: error.message })
+  }
+}
+
+// UPDATE a service (protected - provider only)
+exports.updateService = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { category, title, description, basePrice } = req.body
+
+    const service = await prisma.service.findUnique({
+      where: { id },
+      include: { provider: true }
+    })
+
+    if (!service) {
+      return res.status(404).json({ error: 'Service not found' })
+    }
+
+    if (service.provider.userId !== req.user.userId) {
+      return res.status(403).json({ error: 'You do not have permission to update this service' })
+    }
+
+    const titleChanged = title !== undefined && title !== service.title;
+    const descriptionChanged = description !== undefined && description !== (service.description || '');
+    const categoryChanged = category !== undefined && category !== service.category;
+
+    const needsReview = titleChanged || descriptionChanged || categoryChanged;
+
+    if (!needsReview) {
+      // Only price change (or no changes at all)
+      const updated = await prisma.service.update({
+        where: { id },
+        data: {
+          basePrice: basePrice !== undefined ? parseFloat(basePrice) : service.basePrice
+        }
+      })
+      return res.json({ message: 'Price updated', service: updated })
+    } else {
+      // Needs review
+      const updated = await prisma.service.update({
+        where: { id },
+        data: {
+          category: category !== undefined ? category : service.category,
+          title: title !== undefined ? title : service.title,
+          description: description !== undefined ? description : service.description,
+          basePrice: basePrice !== undefined ? parseFloat(basePrice) : service.basePrice,
+          status: 'PENDING'
+        }
+      })
+      return res.json({ message: 'Service updated and resubmitted for review', service: updated })
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Could not update service', details: error.message })
+  }
+}
+
+// DELETE a service (protected - provider only)
+exports.deleteService = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const service = await prisma.service.findUnique({
+      where: { id },
+      include: { provider: true }
+    })
+
+    if (!service) {
+      return res.status(404).json({ error: 'Service not found' })
+    }
+
+    if (service.provider.userId !== req.user.userId) {
+      return res.status(403).json({ error: 'You do not have permission to delete this service' })
+    }
+
+    await prisma.service.delete({ where: { id } })
+
+    res.json({ message: 'Service deleted' })
+  } catch (error) {
+    res.status(500).json({ error: 'Could not delete service', details: error.message })
+  }
+}
+
+// GET all services for logged-in provider (protected)
+exports.getMyServices = async (req, res) => {
+  try {
+    const provider = await prisma.provider.findUnique({
+      where: { userId: req.user.userId }
+    })
+
+    if (!provider) {
+      return res.status(404).json({ error: 'Provider not found' })
+    }
+
+    const services = await prisma.service.findMany({
+      where: { providerId: provider.id },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    res.json(services)
+  } catch (error) {
+    res.status(500).json({ error: 'Could not fetch services', details: error.message })
   }
 }
