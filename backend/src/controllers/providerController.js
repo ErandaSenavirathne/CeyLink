@@ -90,11 +90,14 @@ exports.getProviderById = async (req, res) => {
     const provider = await prisma.provider.findUnique({
       where: { id },
       include: {
-        user: { select: { name: true, phone: true, email: true } },
+        user: { select: { name: true, phone: true, email: true, createdAt: true } },
         services: true,
         reviews: {
           include: { customer: { select: { name: true } } },
           orderBy: { createdAt: 'desc' }
+        },
+        bookings: {
+          select: { id: true, status: true }
         }
       }
     })
@@ -103,7 +106,24 @@ exports.getProviderById = async (req, res) => {
       return res.status(404).json({ error: 'Provider not found' })
     }
 
-    res.json(provider)
+    const ratings = provider.reviews.map(r => r.rating)
+    const avgRating = ratings.length > 0
+      ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+      : null
+    const completedJobs = provider.bookings.filter(
+      b => b.status === 'COMPLETED'
+    ).length
+    const isBusy = provider.bookings.some(
+      b => b.status === 'IN_PROGRESS'
+    )
+
+    res.json({
+      ...provider,
+      avgRating,
+      reviewCount: ratings.length,
+      completedJobs,
+      isBusy
+    })
   } catch (error) {
     res.status(500).json({ error: 'Could not fetch provider', details: error.message })
   }
