@@ -57,7 +57,16 @@ exports.register = async (req, res) => {
       message: 'Account created successfully',
       accessToken,
       refreshToken,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role }
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role,
+        phone: user.phone,
+        district: user.district,
+        address: user.address,
+        createdAt: user.createdAt 
+      }
     })
   } catch (error) {
     res.status(500).json({ error: 'Registration failed', details: error.message })
@@ -92,7 +101,16 @@ exports.login = async (req, res) => {
       message: 'Login successful',
       accessToken,
       refreshToken,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role }
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role,
+        phone: user.phone,
+        district: user.district,
+        address: user.address,
+        createdAt: user.createdAt 
+      }
     })
   } catch (error) {
     res.status(500).json({ error: 'Login failed', details: error.message })
