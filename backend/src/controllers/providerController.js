@@ -125,8 +125,18 @@ exports.getProviderById = async (req, res) => {
       b => b.status === 'IN_PROGRESS'
     )
 
+    // Mask customer identity in reviews for safety
+    const maskedReviews = provider.reviews.map(r => ({
+      ...r,
+      customer: {
+        name: 'Anonymous Customer',
+        profilePhoto: null
+      }
+    }))
+
     res.json({
       ...provider,
+      reviews: maskedReviews,
       avgRating,
       reviewCount: ratings.length,
       completedJobs,
