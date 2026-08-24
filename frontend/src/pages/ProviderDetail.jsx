@@ -4,6 +4,7 @@ import api from '../services/api'
 import Navbar from '../components/Navbar'
 import ContactButtons from '../components/ContactButtons'
 import { useAuth } from '../context/AuthContext'
+import StarRatingInput from '../components/StarRatingInput'
 
 // Star display component
 function Stars({ rating, size = 'sm' }) {
@@ -46,10 +47,28 @@ export default function ProviderDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState('services')
+  const [myBookings, setMyBookings] = useState([])
+  const [reviewingBookingId, setReviewingBookingId] = useState(null)
+  const [reviewData, setReviewData] = useState({ rating: 0, reviewText: '' })
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [reviewSuccess, setReviewSuccess] = useState('')
+  const [reviewError, setReviewError] = useState('')
 
   useEffect(() => {
     fetchProvider()
-  }, [id])
+    if (user?.role === 'CUSTOMER') {
+      fetchMyBookings()
+    }
+  }, [id, user])
+
+  const fetchMyBookings = async () => {
+    try {
+      const res = await api.get('/bookings/my-bookings')
+      setMyBookings(res.data)
+    } catch (err) {
+      console.error('Failed to fetch bookings', err)
+    }
+  }
 
   const fetchProvider = async () => {
     setLoading(true)
@@ -62,6 +81,42 @@ export default function ProviderDetail() {
       setLoading(false)
     }
   }
+
+  const submitReview = async (e) => {
+    e.preventDefault()
+    setReviewSubmitting(true)
+    setReviewError('')
+    setReviewSuccess('')
+    try {
+      await api.post('/reviews', {
+        bookingId: reviewingBookingId,
+        rating: reviewData.rating,
+        reviewText: reviewData.reviewText
+      })
+      setReviewSuccess('Your review has been submitted. Thank you!')
+      setReviewData({ rating: 0, reviewText: '' })
+      await fetchMyBookings()
+      await fetchProvider()
+    } catch (err) {
+      setReviewError(err.response?.data?.error || 'Could not submit review')
+    } finally {
+      setReviewSubmitting(false)
+    }
+  }
+
+  const unreviewedBookings = myBookings.filter(
+    b => b.providerId === provider?.id && b.status === 'COMPLETED' && !b.review
+  )
+  const canReview = unreviewedBookings.length > 0 && user?.role === 'CUSTOMER'
+
+  // Pre-select if only one booking available and none is selected yet
+  useEffect(() => {
+    if (canReview && unreviewedBookings.length === 1 && !reviewingBookingId) {
+      setReviewingBookingId(unreviewedBookings[0].id)
+    } else if (canReview && unreviewedBookings.length > 1 && !reviewingBookingId) {
+      setReviewingBookingId(unreviewedBookings[0].id)
+    }
+  }, [canReview, unreviewedBookings, reviewingBookingId])
 
   if (loading) {
     return (
@@ -340,6 +395,77 @@ export default function ProviderDetail() {
             {/* Reviews Tab */}
             {activeTab === 'reviews' && (
               <div className="space-y-3">
+                {/* Leave a Review Form Section */}
+                {canReview && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-4">
+                    <h3 className="font-semibold text-gray-800 mb-2">✍️ Leave a Review for {provider.user.name}</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      You have {unreviewedBookings.length} completed booking(s) with this provider that haven't been reviewed yet.
+                    </p>
+
+                    {reviewSuccess && (
+                      <div className="bg-green-100 text-green-700 p-3 rounded-md mb-4 text-sm font-medium">
+                        {reviewSuccess}
+                      </div>
+                    )}
+
+                    <form onSubmit={submitReview} className="space-y-4">
+                      {unreviewedBookings.length > 1 ? (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Select Booking:</label>
+                          <select 
+                            value={reviewingBookingId || ''} 
+                            onChange={(e) => setReviewingBookingId(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm bg-white"
+                          >
+                            {unreviewedBookings.map(b => (
+                              <option key={b.id} value={b.id}>
+                                {b.service.title} — {new Date(b.bookingDate).toLocaleDateString('en-LK', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ) : (
+                        unreviewedBookings.length === 1 && (
+                          <p className="text-sm text-gray-600 font-medium">
+                            Booking: {unreviewedBookings[0].service.title} on {new Date(unreviewedBookings[0].bookingDate).toLocaleDateString('en-LK', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                          </p>
+                        )
+                      )}
+
+                      <div>
+                        <StarRatingInput 
+                          value={reviewData.rating} 
+                          onChange={(rating) => setReviewData({ ...reviewData, rating })} 
+                          size="lg" 
+                        />
+                      </div>
+
+                      <div>
+                        <textarea
+                          rows="3"
+                          placeholder="Share your experience with this provider..."
+                          value={reviewData.reviewText}
+                          onChange={(e) => setReviewData({ ...reviewData, reviewText: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm"
+                        />
+                      </div>
+
+                      {reviewError && (
+                        <p className="text-red-600 text-sm">{reviewError}</p>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={reviewData.rating === 0 || reviewSubmitting}
+                        className="bg-primary text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-blue-900 transition disabled:opacity-50"
+                      >
+                        {reviewSubmitting ? 'Submitting...' : 'Submit Review'}
+                      </button>
+                    </form>
+                  </div>
+                )}
+
                 {provider.reviews.length === 0 && (
                   <div className="bg-white rounded-xl shadow-sm p-8 text-center">
                     <p className="text-4xl mb-2">💬</p>
