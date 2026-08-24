@@ -35,6 +35,11 @@ export default function ProviderProfile() {
     nicNumber: ''
   })
   
+  const [providerStatus, setProviderStatus] = useState({
+    verificationStatus: 'PENDING',
+    rejectionReason: null
+  })
+  
   const [nicError, setNicError] = useState(null)
 
   const validateNIC = (nic) => {
@@ -77,6 +82,10 @@ export default function ProviderProfile() {
         district: provider.district || '',
         skills: provider.skills || [],
         nicNumber: provider.nicNumber || ''
+      })
+      setProviderStatus({
+        verificationStatus: provider.verificationStatus,
+        rejectionReason: provider.rejectionReason
       })
       setProfilePhoto(provider.profilePhoto)
     } catch (err) {
@@ -240,6 +249,28 @@ export default function ProviderProfile() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-primary mb-2">My Profile</h1>
         <p className="text-gray-500 mb-8">Manage your public provider information and services.</p>
+
+        {/* Revocation Alert */}
+        {providerStatus.verificationStatus === 'REJECTED' && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-5 mb-6 flex gap-4 items-start shadow-sm">
+            <span className="text-2xl mt-1">🛑</span>
+            <div className="flex-1">
+              <h3 className="text-red-800 font-bold mb-1">Your provider account has been revoked</h3>
+              <p className="text-red-700 text-sm mb-3">
+                An administrator has revoked your ability to accept new bookings on CeyLink. Your services are currently hidden from customers.
+              </p>
+              {providerStatus.rejectionReason && (
+                <div className="bg-white rounded-md p-3 text-red-800 text-sm border border-red-200">
+                  <span className="font-semibold block text-red-900 mb-1">Reason provided by admin:</span>
+                  {providerStatus.rejectionReason}
+                </div>
+              )}
+              <p className="text-xs text-red-600 mt-3">
+                You can update your profile or services based on this feedback, and an admin may re-verify your account.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-2 mb-6 border-b border-gray-200">
           <button

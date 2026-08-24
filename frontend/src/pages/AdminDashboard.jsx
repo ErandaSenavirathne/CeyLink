@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 
@@ -24,6 +25,7 @@ export default function AdminDashboard() {
   const [bookings, setBookings] = useState([])
   const [pendingServices, setPendingServices] = useState([])
   const [rejectReasons, setRejectReasons] = useState({})
+  const [providerRejectReasons, setProviderRejectReasons] = useState({})
   const [activeTab, setActiveTab] = useState('overview')
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState(null)
@@ -62,7 +64,13 @@ export default function AdminDashboard() {
     setUpdatingId(providerId)
     try {
       await api.patch(`/admin/providers/${providerId}/verify`, {
-        verificationStatus: status
+        verificationStatus: status,
+        rejectionReason: status === 'REJECTED' ? providerRejectReasons[providerId] : undefined
+      })
+      setProviderRejectReasons(prev => {
+        const next = { ...prev }
+        delete next[providerId]
+        return next
       })
       await fetchAll()
     } catch (err) {
@@ -158,6 +166,75 @@ export default function AdminDashboard() {
               ))}
             </div>
 
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+                <h3 className="font-semibold text-gray-800 mb-4">Revenue Trend (Last 30 Days)</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={stats.trends}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="date" tick={{fontSize: 12}} minTickGap={30} />
+                      <YAxis tick={{fontSize: 12}} />
+                      <Tooltip formatter={(value) => `Rs. ${value}`} />
+                      <Line type="monotone" dataKey="revenue" stroke="#0ea5e9" strokeWidth={3} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+                <h3 className="font-semibold text-gray-800 mb-4">Daily Bookings (Last 30 Days)</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={stats.trends}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="date" tick={{fontSize: 12}} minTickGap={30} />
+                      <YAxis tick={{fontSize: 12}} allowDecimals={false} />
+                      <Tooltip />
+                      <Bar dataKey="bookings" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 lg:col-span-2">
+                <h3 className="font-semibold text-gray-800 mb-4">User Distribution</h3>
+                <div className="h-64 flex justify-center items-center">
+                  <ResponsiveContainer width="50%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={stats.userDistribution}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {stats.userDistribution?.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={['#3b82f6', '#10b981', '#6366f1'][index % 3]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  
+                  <div className="flex flex-col justify-center gap-3 w-1/2 max-w-xs pl-8">
+                    {stats.userDistribution?.map((entry, index) => (
+                      <div key={entry.name} className="flex items-center justify-between border-b border-gray-50 pb-2 last:border-0">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: ['#3b82f6', '#10b981', '#6366f1'][index % 3] }} />
+                          <span className="text-sm text-gray-600 capitalize">{entry.name.toLowerCase()}s</span>
+                        </div>
+                        <span className="text-sm font-semibold text-gray-800">{entry.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Pending verifications alert */}
             {stats.pendingProviders > 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex justify-between items-center">
@@ -213,40 +290,105 @@ export default function AdminDashboard() {
                   </div>
                 )}
 
+                {provider.verificationStatus === 'REJECTED' && provider.rejectionReason && (
+                  <div className="mb-3 text-sm text-red-600 bg-red-50 p-3 rounded border border-red-100">
+                    <span className="font-semibold block mb-1">Reason for revocation: </span>
+                    {provider.rejectionReason}
+                  </div>
+                )}
+
                 {provider.verificationStatus === 'PENDING' && (
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      onClick={() => updateVerification(provider.id, 'VERIFIED')}
-                      disabled={updatingId === provider.id}
-                      className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-green-700 transition disabled:opacity-50"
-                    >
-                      {updatingId === provider.id ? 'Updating...' : 'Approve'}
-                    </button>
-                    <button
-                      onClick={() => updateVerification(provider.id, 'REJECTED')}
-                      disabled={updatingId === provider.id}
-                      className="bg-red-50 text-red-600 border border-red-200 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-100 transition disabled:opacity-50"
-                    >
-                      Reject
-                    </button>
+                  <div className="flex flex-col gap-2 mt-3">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => updateVerification(provider.id, 'VERIFIED')}
+                        disabled={updatingId === provider.id}
+                        className="bg-green-600 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-green-700 transition disabled:opacity-50 w-32"
+                      >
+                        {updatingId === provider.id ? 'Updating...' : 'Approve'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (providerRejectReasons[provider.id] === undefined) {
+                            setProviderRejectReasons(prev => ({ ...prev, [provider.id]: '' }))
+                          } else {
+                            setProviderRejectReasons(prev => {
+                              const next = { ...prev }
+                              delete next[provider.id]
+                              return next
+                            })
+                          }
+                        }}
+                        className="border border-red-500 text-red-600 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-50 transition w-32"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                    {providerRejectReasons[provider.id] !== undefined && (
+                      <div className="mt-2 flex flex-col gap-2 max-w-md">
+                        <textarea
+                          placeholder="Enter reason for rejection (required)..."
+                          value={providerRejectReasons[provider.id]}
+                          onChange={e => setProviderRejectReasons(prev => ({ ...prev, [provider.id]: e.target.value }))}
+                          className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:border-red-400"
+                          rows="2"
+                        />
+                        <button
+                          onClick={() => updateVerification(provider.id, 'REJECTED')}
+                          disabled={!providerRejectReasons[provider.id].trim() || updatingId === provider.id}
+                          className="bg-red-600 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-700 transition disabled:opacity-50 self-start"
+                        >
+                          Confirm Reject
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {provider.verificationStatus === 'VERIFIED' && (
-                  <button
-                    onClick={() => updateVerification(provider.id, 'REJECTED')}
-                    disabled={updatingId === provider.id}
-                    className="mt-2 text-xs text-red-500 hover:text-red-700 transition"
-                  >
-                    Revoke verification
-                  </button>
+                  <div className="flex flex-col gap-2 mt-3">
+                    <button
+                      onClick={() => {
+                        if (providerRejectReasons[provider.id] === undefined) {
+                          setProviderRejectReasons(prev => ({ ...prev, [provider.id]: '' }))
+                        } else {
+                          setProviderRejectReasons(prev => {
+                            const next = { ...prev }
+                            delete next[provider.id]
+                            return next
+                          })
+                        }
+                      }}
+                      className="text-xs text-red-500 hover:text-red-700 transition self-start font-medium"
+                    >
+                      Revoke verification
+                    </button>
+                    {providerRejectReasons[provider.id] !== undefined && (
+                      <div className="mt-2 flex flex-col gap-2 max-w-md">
+                        <textarea
+                          placeholder="Enter reason for revocation (required)..."
+                          value={providerRejectReasons[provider.id]}
+                          onChange={e => setProviderRejectReasons(prev => ({ ...prev, [provider.id]: e.target.value }))}
+                          className="w-full border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:border-red-400"
+                          rows="2"
+                        />
+                        <button
+                          onClick={() => updateVerification(provider.id, 'REJECTED')}
+                          disabled={!providerRejectReasons[provider.id].trim() || updatingId === provider.id}
+                          className="bg-red-600 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-700 transition disabled:opacity-50 self-start"
+                        >
+                          Confirm Revoke
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {provider.verificationStatus === 'REJECTED' && (
                   <button
                     onClick={() => updateVerification(provider.id, 'VERIFIED')}
                     disabled={updatingId === provider.id}
-                    className="mt-2 bg-green-50 text-green-600 border border-green-200 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-green-100 transition"
+                    className="mt-3 bg-green-50 text-green-600 border border-green-200 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-green-100 transition"
                   >
                     Approve instead
                   </button>

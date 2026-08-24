@@ -28,6 +28,7 @@ export default function ProviderDashboard() {
   const [updatingId, setUpdatingId] = useState(null)
   const [filter, setFilter] = useState('ALL')
   const [myServices, setMyServices] = useState([])
+  const [providerProfile, setProviderProfile] = useState(null)
 
   // Check if provider has any job currently in progress
   const hasActiveJob = bookings.some(b => b.status === 'IN_PROGRESS')
@@ -35,7 +36,17 @@ export default function ProviderDashboard() {
   useEffect(() => {
     fetchBookings()
     fetchMyServices()
+    fetchProviderProfile()
   }, [])
+
+  const fetchProviderProfile = async () => {
+    try {
+      const res = await api.get('/providers/my-profile')
+      setProviderProfile(res.data)
+    } catch {
+      // ignore
+    }
+  }
 
   const fetchMyServices = async () => {
     try {
@@ -97,6 +108,28 @@ export default function ProviderDashboard() {
       <div className="max-w-3xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-1">{t('dashboard.title')}</h1>
         <p className="text-gray-500 mb-6">{t('dashboard.subtitle')}</p>
+
+        {/* Revocation Alert */}
+        {providerProfile?.verificationStatus === 'REJECTED' && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-5 mb-6 flex gap-4 items-start shadow-sm">
+            <span className="text-2xl mt-1">🛑</span>
+            <div className="flex-1">
+              <h3 className="text-red-800 font-bold mb-1">Your provider account has been revoked</h3>
+              <p className="text-red-700 text-sm mb-3">
+                An administrator has revoked your ability to accept new bookings on CeyLink. Your services are currently hidden from customers.
+              </p>
+              {providerProfile.rejectionReason && (
+                <div className="bg-white rounded-md p-3 text-red-800 text-sm border border-red-200">
+                  <span className="font-semibold block text-red-900 mb-1">Reason provided by admin:</span>
+                  {providerProfile.rejectionReason}
+                </div>
+              )}
+              <p className="text-xs text-red-600 mt-3">
+                You can update your profile or services based on this feedback, and an admin may re-verify your account.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Show this banner when provider has no approved services */}
         {!loading && myServices.filter(s => s.status === 'APPROVED').length === 0 && (

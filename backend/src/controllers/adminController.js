@@ -17,13 +17,50 @@ exports.getStats = async (req, res) => {
       _sum: { totalAmount: true }
     })
 
+    // Fetch bookings for the last 30 days for trend analysis
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    const recentBookings = await prisma.booking.findMany({
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      select: { createdAt: true, status: true, totalAmount: true }
+    })
+
+    const trendsMap = {}
+    for(let i = 29; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const dateStr = d.toISOString().split('T')[0]
+      trendsMap[dateStr] = { date: dateStr, revenue: 0, bookings: 0 }
+    }
+
+    recentBookings.forEach(b => {
+      const dateStr = b.createdAt.toISOString().split('T')[0]
+      if (trendsMap[dateStr]) {
+        trendsMap[dateStr].bookings += 1
+        if (b.status === 'COMPLETED' && b.totalAmount) {
+          trendsMap[dateStr].revenue += b.totalAmount
+        }
+      }
+    })
+    const trends = Object.values(trendsMap)
+
+    // User Roles distribution
+    const usersByRole = await prisma.user.groupBy({
+      by: ['role'],
+      _count: { id: true }
+    })
+    const userDistribution = usersByRole.map(r => ({ name: r.role, value: r._count.id }))
+
     res.json({
       totalUsers,
       totalProviders,
       totalBookings,
       pendingProviders,
       completedBookings,
-      totalRevenue: revenueResult._sum.totalAmount || 0
+      totalRevenue: revenueResult._sum.totalAmount || 0,
+      trends,
+      userDistribution
     })
   } catch (error) {
     res.status(500).json({ error: 'Could not fetch stats', details: error.message })
@@ -51,18 +88,23 @@ exports.getProviders = async (req, res) => {
 exports.updateProviderVerification = async (req, res) => {
   try {
     const { id } = req.params
-    const { verificationStatus } = req.body
+    const { verificationStatus, rejectionReason } = req.body
 
     const validStatuses = ['VERIFIED', 'REJECTED', 'PENDING']
     if (!validStatuses.includes(verificationStatus)) {
       return res.status(400).json({ error: 'Invalid verification status' })
     }
 
+    if (verificationStatus === 'REJECTED' && (!rejectionReason || !rejectionReason.trim())) {
+      return res.status(400).json({ error: 'Rejection reason is required' })
+    }
+
     const provider = await prisma.provider.update({
       where: { id },
       data: {
         verificationStatus,
-        nicVerified: verificationStatus === 'VERIFIED'
+        nicVerified: verificationStatus === 'VERIFIED',
+        rejectionReason: verificationStatus === 'REJECTED' ? rejectionReason : null
       },
       include: { user: { select: { name: true, email: true } } }
     })

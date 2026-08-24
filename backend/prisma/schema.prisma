@@ -41,6 +41,7 @@ model Provider {
   hourlyRate         Float?
   profilePhoto       String?
   skills             String[]
+  rejectionReason    String?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
