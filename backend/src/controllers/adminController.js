@@ -3,35 +3,53 @@ const prisma = require('../utils/prismaClient')
 // GET platform stats
 exports.getStats = async (req, res) => {
   try {
+    const { startDate, endDate } = req.query
+    const dateFilter = {}
+    if (startDate || endDate) {
+      dateFilter.createdAt = {}
+      if (startDate) dateFilter.createdAt.gte = new Date(startDate)
+      if (endDate) dateFilter.createdAt.lte = new Date(endDate)
+    }
+
     const [totalUsers, totalProviders, totalBookings, pendingProviders, completedBookings] =
       await Promise.all([
-        prisma.user.count(),
-        prisma.provider.count(),
-        prisma.booking.count(),
-        prisma.provider.count({ where: { verificationStatus: 'PENDING' } }),
-        prisma.booking.count({ where: { status: 'COMPLETED' } })
+        prisma.user.count({ where: dateFilter }),
+        prisma.provider.count({ where: dateFilter }),
+        prisma.booking.count({ where: dateFilter }),
+        prisma.provider.count({ where: { ...dateFilter, verificationStatus: 'PENDING' } }),
+        prisma.booking.count({ where: { ...dateFilter, status: 'COMPLETED' } })
       ])
 
     const revenueResult = await prisma.booking.aggregate({
-      where: { status: 'COMPLETED' },
+      where: { ...dateFilter, status: 'COMPLETED' },
       _sum: { totalAmount: true }
     })
 
-    // Fetch bookings for the last 30 days for trend analysis
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    let trendStart = new Date()
+    trendStart.setDate(trendStart.getDate() - 29)
+    let trendEnd = new Date()
+
+    if (startDate) trendStart = new Date(startDate)
+    if (endDate) trendEnd = new Date(endDate)
 
     const recentBookings = await prisma.booking.findMany({
-      where: { createdAt: { gte: thirtyDaysAgo } },
+      where: { createdAt: { gte: trendStart, lte: trendEnd } },
       select: { createdAt: true, status: true, totalAmount: true }
     })
 
     const trendsMap = {}
-    for(let i = 29; i >= 0; i--) {
-      const d = new Date()
+    
+    // Create map for each day in range (capped at 90 days)
+    const diffTime = Math.abs(trendEnd - trendStart);
+    const diffDays = Math.min(Math.ceil(diffTime / (1000 * 60 * 60 * 24)), 90); 
+
+    for(let i = diffDays; i >= 0; i--) {
+      const d = new Date(trendEnd)
       d.setDate(d.getDate() - i)
       const dateStr = d.toISOString().split('T')[0]
-      trendsMap[dateStr] = { date: dateStr, revenue: 0, bookings: 0 }
+      if (!trendsMap[dateStr]) {
+        trendsMap[dateStr] = { date: dateStr, revenue: 0, bookings: 0 }
+      }
     }
 
     recentBookings.forEach(b => {
@@ -119,6 +137,7 @@ exports.updateProviderVerification = async (req, res) => {
 exports.getUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
+      where: { role: 'CUSTOMER' },
       select: {
         id: true, name: true, email: true, role: true,
         district: true, phone: true, createdAt: true
@@ -134,7 +153,16 @@ exports.getUsers = async (req, res) => {
 // GET all bookings
 exports.getBookings = async (req, res) => {
   try {
+    const { startDate, endDate } = req.query
+    const dateFilter = {}
+    if (startDate || endDate) {
+      dateFilter.createdAt = {}
+      if (startDate) dateFilter.createdAt.gte = new Date(startDate)
+      if (endDate) dateFilter.createdAt.lte = new Date(endDate)
+    }
+
     const bookings = await prisma.booking.findMany({
+      where: dateFilter,
       include: {
         customer: { select: { name: true, email: true } },
         provider: { include: { user: { select: { name: true } } } },

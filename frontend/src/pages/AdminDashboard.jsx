@@ -30,6 +30,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState(null)
+  const [filterStartDate, setFilterStartDate] = useState('')
+  const [filterEndDate, setFilterEndDate] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -39,13 +41,18 @@ export default function AdminDashboard() {
   const fetchAll = async () => {
     setLoading(true)
     try {
+      const queryParams = []
+      if (filterStartDate) queryParams.push(`startDate=${filterStartDate}`)
+      if (filterEndDate) queryParams.push(`endDate=${filterEndDate}`)
+      const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : ''
+
       const [statsRes, providersRes, usersRes, bookingsRes, servicesRes, reportsRes] = await Promise.all([
-        api.get('/admin/stats'),
+        api.get(`/admin/stats${queryString}`),
         api.get('/admin/providers'),
         api.get('/admin/users'),
-        api.get('/admin/bookings'),
+        api.get(`/admin/bookings${queryString}`),
         api.get('/admin/services/pending'),
-        api.get('/reports')
+        api.get(`/reports${queryString}`)
       ])
       setStats(statsRes.data)
       setProviders(providersRes.data)
@@ -131,6 +138,49 @@ export default function AdminDashboard() {
       <div className="max-w-5xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-1">Admin Dashboard</h1>
         <p className="text-gray-500 mb-6">Platform management and oversight</p>
+
+        {/* Global Date & Time Filters */}
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-6 flex flex-wrap items-end gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Start Date & Time</label>
+            <input
+              type="datetime-local"
+              value={filterStartDate}
+              onChange={(e) => setFilterStartDate(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm bg-gray-50"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">End Date & Time</label>
+            <input
+              type="datetime-local"
+              value={filterEndDate}
+              onChange={(e) => setFilterEndDate(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm bg-gray-50"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => fetchAll()}
+              className="bg-primary text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-900 transition shadow-sm"
+            >
+              Apply Filter
+            </button>
+            <button
+              onClick={() => {
+                setFilterStartDate('')
+                setFilterEndDate('')
+                // Wait for state to update, then fetch (in a real app, useEffect handles this better, but here we can just pass empty strings to a fetch variant, or just setTimeout)
+                setTimeout(() => {
+                  window.location.reload()
+                }, 50)
+              }}
+              className="bg-gray-100 text-gray-600 px-4 py-2 rounded-md text-sm font-semibold hover:bg-gray-200 transition"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
 
         {/* Tab navigation */}
         <div className="flex gap-2 mb-6 border-b border-gray-200">

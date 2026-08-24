@@ -32,11 +32,18 @@ exports.createReport = async (req, res) => {
 // ADMIN: Get all reports
 exports.getReports = async (req, res) => {
   try {
-    const { status } = req.query
+    const { status, startDate, endDate } = req.query
+    const dateFilter = {}
+    if (startDate || endDate) {
+      dateFilter.createdAt = {}
+      if (startDate) dateFilter.createdAt.gte = new Date(startDate)
+      if (endDate) dateFilter.createdAt.lte = new Date(endDate)
+    }
     
     const reports = await prisma.report.findMany({
       where: {
-        ...(status && { status })
+        ...(status && { status }),
+        ...dateFilter
       },
       include: {
         customer: { select: { id: true, name: true, email: true } },
