@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import ContactButtons from '../components/ContactButtons'
+import StarRatingInput from '../components/StarRatingInput'
 
 const statusStyles = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -17,9 +18,7 @@ export default function MyBookings() {
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [reviewingId, setReviewingId] = useState(null)
-  const [reviewData, setReviewData] = useState({ rating: 5, reviewText: '' })
-  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [reviewData, setReviewData] = useState({}) // { bookingId: { rating, text, submitting, error } }
 
   useEffect(() => {
     fetchBookings()
@@ -30,6 +29,14 @@ export default function MyBookings() {
     try {
       const res = await api.get('/bookings/my-bookings')
       setBookings(res.data)
+
+      const newReviewData = {}
+      res.data
+        .filter(b => b.status === 'COMPLETED' && !b.review)
+        .forEach(b => {
+          newReviewData[b.id] = { rating: 0, text: '', submitting: false, error: '' }
+        })
+      setReviewData(newReviewData)
     } catch {
       setError('Could not load your bookings.')
     } finally {
@@ -47,26 +54,29 @@ export default function MyBookings() {
     }
   }
 
-  const openReviewForm = (bookingId) => {
-    setReviewingId(bookingId)
-    setReviewData({ rating: 5, reviewText: '' })
-  }
+  const submitReview = async (bookingId) => {
+    const data = reviewData[bookingId]
+    if (!data || data.rating === 0) return
 
-  const submitReview = async (e) => {
-    e.preventDefault()
-    setReviewSubmitting(true)
+    setReviewData(prev => ({ ...prev, [bookingId]: { ...prev[bookingId], submitting: true, error: '' } }))
+
     try {
       await api.post('/reviews', {
-        bookingId: reviewingId,
-        rating: reviewData.rating,
-        reviewText: reviewData.reviewText
+        bookingId,
+        rating: data.rating,
+        reviewText: data.text
       })
-      setReviewingId(null)
       fetchBookings()
+      alert('Review submitted successfully')
     } catch (err) {
-      alert(err.response?.data?.error || 'Could not submit review')
-    } finally {
-      setReviewSubmitting(false)
+      setReviewData(prev => ({
+        ...prev,
+        [bookingId]: {
+          ...prev[bookingId],
+          submitting: false,
+          error: err.response?.data?.error || 'Could not submit review'
+        }
+      }))
     }
   }
 
@@ -79,6 +89,8 @@ export default function MyBookings() {
     )
   }
 
+  const awaitingReview = bookings.filter(b => b.status === 'COMPLETED' && !b.review)
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -86,6 +98,55 @@ export default function MyBookings() {
       <div className="max-w-3xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-1">{t('myBookings.title')}</h1>
         <p className="text-gray-500 mb-6">{t('myBookings.subtitle')}</p>
+
+        {/* Pending Reviews Section */}
+        {awaitingReview.length > 0 && (
+          <div className="bg-amber-50 border-l-4 border-amber-400 p-5 rounded-r-xl shadow-sm mb-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">⭐ You have {awaitingReview.length} completed booking(s) to review</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Your reviews help other customers make better decisions and reward great providers.
+            </p>
+
+            <div className="space-y-4">
+              {awaitingReview.map(booking => {
+                const rData = reviewData[booking.id] || { rating: 0, text: '', submitting: false, error: '' }
+                return (
+                  <div key={booking.id} className="bg-white p-4 rounded-lg shadow-sm border border-amber-100">
+                    <p className="font-semibold text-gray-800">{booking.provider.user.name}</p>
+                    <p className="text-sm text-gray-500 mb-3">{booking.service.title} — {new Date(booking.bookingDate).toLocaleDateString('en-LK')}</p>
+
+                    <div className="space-y-3">
+                      <StarRatingInput
+                        value={rData.rating}
+                        onChange={(rating) => setReviewData(prev => ({ ...prev, [booking.id]: { ...prev[booking.id], rating } }))}
+                        size="md"
+                      />
+
+                      <textarea
+                        rows="2"
+                        placeholder="Share your experience..."
+                        value={rData.text}
+                        onChange={(e) => setReviewData(prev => ({ ...prev, [booking.id]: { ...prev[booking.id], text: e.target.value } }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm"
+                      />
+
+                      {rData.error && <p className="text-red-600 text-xs">{rData.error}</p>}
+                      {rData.rating === 0 && <p className="text-gray-400 text-xs italic">Please select a rating</p>}
+
+                      <button
+                        onClick={() => submitReview(booking.id)}
+                        disabled={rData.rating === 0 || rData.submitting}
+                        className="bg-accent text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-teal-600 transition disabled:opacity-50"
+                      >
+                        {rData.submitting ? 'Submitting...' : 'Submit Review'}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {error && <p className="text-red-600">{error}</p>}
 
@@ -137,67 +198,10 @@ export default function MyBookings() {
                   </button>
                 )}
 
-                {booking.status === 'COMPLETED' && !booking.review && reviewingId !== booking.id && (
-                  <button
-                    onClick={() => openReviewForm(booking.id)}
-                    className="text-sm text-accent border border-accent px-3 py-1.5 rounded-md hover:bg-accent/10 transition"
-                  >
-                    {t('myBookings.leaveReview')}
-                  </button>
-                )}
-
                 {booking.status === 'COMPLETED' && booking.review && (
                   <p className="text-sm text-green-600">✓ {t('myBookings.reviewed')}</p>
                 )}
               </div>
-
-              {/* Inline review form */}
-              {reviewingId === booking.id && (
-                <form onSubmit={submitReview} className="mt-4 border-t border-gray-100 pt-4 space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setReviewData({ ...reviewData, rating: star })}
-                          className={`text-2xl ${star <= reviewData.rating ? 'text-amber-400' : 'text-gray-300'}`}
-                        >
-                          ⭐
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <textarea
-                      rows={2}
-                      placeholder="Share your experience..."
-                      value={reviewData.reviewText}
-                      onChange={(e) => setReviewData({ ...reviewData, reviewText: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                    />
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      type="submit"
-                      disabled={reviewSubmitting}
-                      className="bg-primary text-white px-4 py-1.5 rounded-md text-sm font-semibold hover:bg-blue-900 transition disabled:opacity-50"
-                    >
-                      {reviewSubmitting ? '...' : t('myBookings.submitReview')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setReviewingId(null)}
-                      className="text-sm text-gray-500 px-4 py-1.5"
-                    >
-                      {t('myBookings.cancel')}
-                    </button>
-                  </div>
-                </form>
-              )}
             </div>
           ))}
         </div>

@@ -11,6 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import { useAuth } from './context/AuthContext'
 import AdminDashboard from './pages/AdminDashboard'
 import ProviderProfile from './pages/ProviderProfile'
+import MyProfile from './pages/MyProfile'
 
 function App() {
   const { user, loading } = useAuth()
@@ -102,6 +103,7 @@ function App() {
       <Route path="/provider/:id" element={<ProtectedRoute allowedRoles={['CUSTOMER', 'PROVIDER']}><ProviderDetail /></ProtectedRoute>} />
       <Route path="/book/:serviceId" element={<ProtectedRoute allowedRoles={['CUSTOMER']}><BookingForm /></ProtectedRoute>} />
       <Route path="/my-bookings" element={<ProtectedRoute allowedRoles={['CUSTOMER']}><MyBookings /></ProtectedRoute>} />
+      <Route path="/my-profile" element={<ProtectedRoute allowedRoles={['CUSTOMER']}><MyProfile /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['PROVIDER']}><ProviderDashboard /></ProtectedRoute>} />
       <Route path="/provider-profile" element={<ProtectedRoute allowedRoles={['PROVIDER']}><ProviderProfile /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />

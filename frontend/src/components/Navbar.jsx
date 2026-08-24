@@ -24,10 +24,11 @@ export default function Navbar() {
 
       <div className="flex items-center gap-4">
         {user?.role === 'CUSTOMER' && (
-          <Link to="/browse" className="hover:text-accent transition">{t('nav.browse')}</Link>
-        )}
-        {user?.role === 'CUSTOMER' && (
-          <Link to="/my-bookings" className="hover:text-accent transition">{t('nav.myBookings')}</Link>
+          <>
+            <Link to="/browse" className="hover:text-accent transition">{t('nav.browse')}</Link>
+            <Link to="/my-bookings" className="hover:text-accent transition">{t('nav.myBookings')}</Link>
+            <Link to="/my-profile" className="hover:text-accent transition">My Profile</Link>
+          </>
         )}
         {user?.role === 'PROVIDER' && (
           <>

@@ -111,3 +111,58 @@ exports.getMe = async (req, res) => {
     res.status(500).json({ error: 'Could not fetch user' })
   }
 }
+
+// UPDATE CURRENT USER PROFILE
+exports.updateProfile = async (req, res) => {
+  try {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() })
+    }
+
+    const { name, phone, district, address } = req.body
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.userId },
+      data: { name, phone, district, address },
+      select: { id: true, name: true, email: true, role: true, phone: true, district: true, address: true, createdAt: true }
+    })
+
+    res.json({ message: 'Profile updated successfully', user: updatedUser })
+  } catch (error) {
+    res.status(500).json({ error: 'Could not update profile', details: error.message })
+  }
+}
+
+// CHANGE PASSWORD
+exports.changePassword = async (req, res) => {
+  try {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() })
+    }
+
+    const { oldPassword, newPassword } = req.body
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.userId } })
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    const isValidPassword = await bcrypt.compare(oldPassword, user.password)
+    if (!isValidPassword) {
+      return res.status(400).json({ error: 'Incorrect old password' })
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12)
+
+    await prisma.user.update({
+      where: { id: req.user.userId },
+      data: { password: hashedPassword }
+    })
+
+    res.json({ message: 'Password changed successfully' })
+  } catch (error) {
+    res.status(500).json({ error: 'Could not change password', details: error.message })
+  }
+}
