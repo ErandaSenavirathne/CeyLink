@@ -113,7 +113,7 @@ exports.getProviderBookings = async (req, res) => {
       where: { providerId: provider.id },
       include: {
         service: true,
-        customer: { select: { name: true, phone: true, address: true, email: true } },
+        customer: { select: { name: true, phone: true, address: true, email: true, profilePhoto: true } },
         payment: true
       },
       orderBy: { createdAt: 'desc' }

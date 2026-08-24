@@ -101,7 +101,7 @@ exports.getProviderById = async (req, res) => {
         user: { select: { name: true, phone: true, email: true, createdAt: true } },
         services: { where: { status: 'APPROVED' } },
         reviews: {
-          include: { customer: { select: { name: true } } },
+          include: { customer: { select: { name: true, profilePhoto: true } } },
           orderBy: { createdAt: 'desc' }
         },
         bookings: {

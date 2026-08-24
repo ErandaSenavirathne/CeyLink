@@ -187,9 +187,18 @@ export default function ProviderDashboard() {
             <div key={booking.id} className="bg-white rounded-lg shadow-sm p-5">
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <h3 className="font-semibold text-gray-800 mb-1">{booking.service.title}</h3>
-                  <div className="flex flex-col gap-2">
-                    <p className="text-sm text-gray-500 font-medium">Customer: {booking.customer.name}</p>
+                  <h3 className="font-semibold text-gray-800 mb-2">{booking.service.title}</h3>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-lg border border-gray-100 inline-flex w-fit">
+                      <div className="w-10 h-10 rounded-full bg-white flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-200 shadow-sm">
+                        {booking.customer.profilePhoto ? (
+                          <img src={booking.customer.profilePhoto} alt={booking.customer.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-gray-400 text-sm">👤</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-700 font-semibold pr-2">{booking.customer.name}</p>
+                    </div>
                     <ContactButtons
                       name={booking.customer.name}
                       phone={booking.customer.phone}

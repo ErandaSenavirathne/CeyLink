@@ -59,8 +59,51 @@ export default function MyProfile() {
         district: res.data.district || '',
         address: res.data.address || ''
       })
+      if (res.data.profilePhoto) {
+        setProfilePhoto(res.data.profilePhoto)
+      }
     } catch (err) {
       console.error('Could not fetch user details', err)
+    }
+  }
+
+  // Photo State
+  const [profilePhoto, setProfilePhoto] = useState(user?.profilePhoto || null)
+  const [photoPreview, setPhotoPreview] = useState(null)
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const [photoMessage, setPhotoMessage] = useState({ type: '', text: '' })
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setSelectedFile(file)
+      setPhotoPreview(URL.createObjectURL(file))
+    }
+  }
+
+  const handleUploadPhoto = async () => {
+    if (!selectedFile) return
+    setUploading(true)
+    setPhotoMessage({ type: '', text: '' })
+
+    const uploadData = new FormData()
+    uploadData.append('photo', selectedFile)
+
+    try {
+      const res = await api.post('/auth/profile-photo', uploadData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      setProfilePhoto(res.data.profilePhoto)
+      setSelectedFile(null)
+      setPhotoPreview(null)
+      setPhotoMessage({ type: 'success', text: 'Profile photo updated!' })
+    } catch (err) {
+      setPhotoMessage({ type: 'error', text: err.response?.data?.error || 'Failed to upload photo.' })
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -137,6 +180,59 @@ export default function MyProfile() {
 
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
         <h1 className="text-2xl font-bold text-gray-800">My Profile</h1>
+
+        {/* Profile Photo Upload */}
+        <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-accent">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Profile Picture</h2>
+          
+          {photoMessage.text && (
+            <div className={`p-3 rounded-md mb-4 text-sm font-medium ${photoMessage.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+              {photoMessage.text}
+            </div>
+          )}
+
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-gray-200">
+              {photoPreview ? (
+                <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+              ) : profilePhoto ? (
+                <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-gray-400 text-4xl">📷</span>
+              )}
+            </div>
+            
+            <div className="flex-1 text-center md:text-left">
+              <p className="text-sm text-gray-600 mb-3">
+                Upload a clear picture of yourself so providers know who they are working with. (Max 5MB)
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleFileSelect}
+                  className="block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100 transition cursor-pointer"
+                />
+                
+                {selectedFile && (
+                  <button
+                    onClick={handleUploadPhoto}
+                    disabled={uploading}
+                    className="bg-accent text-white px-4 py-2 rounded-md font-semibold text-sm hover:bg-teal-600 transition disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {uploading ? 'Uploading...' : 'Save Photo'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
 
 
         {/* Account Section */}

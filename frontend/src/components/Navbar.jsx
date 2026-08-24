@@ -53,7 +53,16 @@ export default function Navbar() {
           ))}
         </div>
 
-        <span className="text-sm text-gray-300">{t('nav.greeting')}, {user?.name}</span>
+        <div className="flex items-center gap-2">
+          {user?.profilePhoto ? (
+            <img src={user.profilePhoto} alt={user.name} className="w-8 h-8 rounded-full object-cover border border-white/20" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+              <span className="text-white text-sm">👤</span>
+            </div>
+          )}
+          <span className="text-sm text-gray-200">{t('nav.greeting')}, {user?.name}</span>
+        </div>
 
         <button
           onClick={handleLogout}

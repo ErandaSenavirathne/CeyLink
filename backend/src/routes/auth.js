@@ -3,6 +3,7 @@ const router = express.Router()
 const { body } = require('express-validator')
 const authController = require('../controllers/authController')
 const authMiddleware = require('../middleware/auth')
+const upload = require('../middleware/upload')
 
 // Validation rules
 const registerValidation = [
@@ -100,6 +101,7 @@ router.post('/register', registerValidation, authController.register)
 router.post('/login', loginValidation, authController.login)
 router.get('/me', authMiddleware, authController.getMe)
 router.put('/profile', authMiddleware, updateProfileValidation, authController.updateProfile)
+router.post('/profile-photo', authMiddleware, upload.single('photo'), authController.updateProfilePhoto)
 router.put('/password', authMiddleware, changePasswordValidation, authController.changePassword)
 router.delete('/me', authMiddleware, authController.deleteProfile)
 

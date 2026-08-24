@@ -21,6 +21,8 @@ const generateTokens = (userId, role) => {
 }
 
 // REGISTER
+const cloudinary = require('../utils/cloudinary')
+
 exports.register = async (req, res) => {
   try {
     const errors = validationResult(req)
@@ -115,6 +117,7 @@ exports.login = async (req, res) => {
         district: user.district,
         city: user.city,
         address: user.address,
+        profilePhoto: user.profilePhoto,
         createdAt: user.createdAt 
       }
     })
@@ -128,7 +131,7 @@ exports.getMe = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      select: { id: true, name: true, email: true, role: true, phone: true, district: true, city: true, address: true, createdAt: true }
+      select: { id: true, name: true, email: true, role: true, phone: true, district: true, city: true, address: true, profilePhoto: true, createdAt: true }
     })
     res.json(user)
   } catch (error) {
@@ -144,12 +147,12 @@ exports.updateProfile = async (req, res) => {
       return res.status(400).json({ errors: errors.array() })
     }
 
-    const { name, phone, district, city, address } = req.body
+    const { name, phone, district, city, address, profilePhoto } = req.body
 
     const updatedUser = await prisma.user.update({
       where: { id: req.user.userId },
-      data: { name, phone, district, city, address },
-      select: { id: true, name: true, email: true, role: true, phone: true, district: true, city: true, address: true, createdAt: true }
+      data: { name, phone, district, city, address, profilePhoto },
+      select: { id: true, name: true, email: true, role: true, phone: true, district: true, city: true, address: true, profilePhoto: true, createdAt: true }
     })
 
     res.json({ message: 'Profile updated successfully', user: updatedUser })
@@ -181,6 +184,7 @@ exports.deleteProfile = async (req, res) => {
         address: null,
         district: null,
         city: null,
+        profilePhoto: null,
         isActive: false
       }
     })
@@ -240,5 +244,46 @@ exports.changePassword = async (req, res) => {
     res.json({ message: 'Password changed successfully' })
   } catch (error) {
     res.status(500).json({ error: 'Could not change password', details: error.message })
+  }
+}
+
+// UPDATE profile photo (Customer and Provider)
+exports.updateProfilePhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId }
+    })
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: 'ceylink_profiles' },
+      async (error, result) => {
+        if (error) {
+          return res.status(500).json({ error: 'Failed to upload image to Cloudinary', details: error.message })
+        }
+
+        const updated = await prisma.user.update({
+          where: { id: user.id },
+          data: { profilePhoto: result.secure_url }
+        })
+
+        res.json({ message: 'Profile photo updated', profilePhoto: updated.profilePhoto })
+      }
+    )
+
+    const stream = require('stream')
+    const bufferStream = new stream.PassThrough()
+    bufferStream.end(req.file.buffer)
+    bufferStream.pipe(uploadStream)
+
+  } catch (error) {
+    res.status(500).json({ error: 'Upload failed', details: error.message })
   }
 }
