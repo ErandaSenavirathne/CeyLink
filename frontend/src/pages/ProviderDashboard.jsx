@@ -217,6 +217,13 @@ export default function ProviderDashboard() {
                 {booking.isUrgent && <p className="text-red-600 font-medium">⚡ Urgent</p>}
               </div>
 
+              {booking.customer.address && (
+                <p className="text-sm text-gray-600 mt-3 flex items-start gap-1">
+                  <span>📍</span>
+                  <span>{booking.customer.address}</span>
+                </p>
+              )}
+
               {booking.notes && (
                 <p className="text-sm text-gray-500 mt-2 italic">"{booking.notes}"</p>
               )}

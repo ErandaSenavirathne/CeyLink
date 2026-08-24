@@ -89,8 +89,6 @@ export default function MyBookings() {
     )
   }
 
-  const awaitingReview = bookings.filter(b => b.status === 'COMPLETED' && !b.review)
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -99,54 +97,7 @@ export default function MyBookings() {
         <h1 className="text-2xl font-bold text-gray-800 mb-1">{t('myBookings.title')}</h1>
         <p className="text-gray-500 mb-6">{t('myBookings.subtitle')}</p>
 
-        {/* Pending Reviews Section */}
-        {awaitingReview.length > 0 && (
-          <div className="bg-amber-50 border-l-4 border-amber-400 p-5 rounded-r-xl shadow-sm mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">⭐ You have {awaitingReview.length} completed booking(s) to review</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Your reviews help other customers make better decisions and reward great providers.
-            </p>
 
-            <div className="space-y-4">
-              {awaitingReview.map(booking => {
-                const rData = reviewData[booking.id] || { rating: 0, text: '', submitting: false, error: '' }
-                return (
-                  <div key={booking.id} className="bg-white p-4 rounded-lg shadow-sm border border-amber-100">
-                    <p className="font-semibold text-gray-800">{booking.provider.user.name}</p>
-                    <p className="text-sm text-gray-500 mb-3">{booking.service.title} — {new Date(booking.bookingDate).toLocaleDateString('en-LK')}</p>
-
-                    <div className="space-y-3">
-                      <StarRatingInput
-                        value={rData.rating}
-                        onChange={(rating) => setReviewData(prev => ({ ...prev, [booking.id]: { ...prev[booking.id], rating } }))}
-                        size="md"
-                      />
-
-                      <textarea
-                        rows="2"
-                        placeholder="Share your experience..."
-                        value={rData.text}
-                        onChange={(e) => setReviewData(prev => ({ ...prev, [booking.id]: { ...prev[booking.id], text: e.target.value } }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm"
-                      />
-
-                      {rData.error && <p className="text-red-600 text-xs">{rData.error}</p>}
-                      {rData.rating === 0 && <p className="text-gray-400 text-xs italic">Please select a rating</p>}
-
-                      <button
-                        onClick={() => submitReview(booking.id)}
-                        disabled={rData.rating === 0 || rData.submitting}
-                        className="bg-accent text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-teal-600 transition disabled:opacity-50"
-                      >
-                        {rData.submitting ? 'Submitting...' : 'Submit Review'}
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
 
         {error && <p className="text-red-600">{error}</p>}
 
@@ -188,18 +139,48 @@ export default function MyBookings() {
               )}
 
               {/* Action buttons depending on status */}
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-col gap-2">
                 {booking.status === 'PENDING' && (
-                  <button
-                    onClick={() => handleCancel(booking.id)}
-                    className="text-sm text-red-600 border border-red-200 px-3 py-1.5 rounded-md hover:bg-red-50 transition"
-                  >
-                    {t('myBookings.cancelBooking')}
-                  </button>
+                  <div>
+                    <button
+                      onClick={() => handleCancel(booking.id)}
+                      className="text-sm text-red-600 border border-red-200 px-3 py-1.5 rounded-md hover:bg-red-50 transition"
+                    >
+                      {t('myBookings.cancelBooking')}
+                    </button>
+                  </div>
                 )}
 
                 {booking.status === 'COMPLETED' && booking.review && (
-                  <p className="text-sm text-green-600">✓ {t('myBookings.reviewed')}</p>
+                  <p className="text-sm text-green-600 font-medium">✓ {t('myBookings.reviewed')}</p>
+                )}
+
+                {booking.status === 'COMPLETED' && !booking.review && reviewData[booking.id] && (
+                  <div className="mt-2 bg-amber-50 border border-amber-100 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-800 mb-3">⭐ Rate your experience</p>
+                    <div className="space-y-3">
+                      <StarRatingInput
+                        value={reviewData[booking.id].rating}
+                        onChange={(rating) => setReviewData(prev => ({ ...prev, [booking.id]: { ...prev[booking.id], rating } }))}
+                        size="md"
+                      />
+                      <textarea
+                        rows="2"
+                        placeholder="Share your experience..."
+                        value={reviewData[booking.id].text}
+                        onChange={(e) => setReviewData(prev => ({ ...prev, [booking.id]: { ...prev[booking.id], text: e.target.value } }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm bg-white"
+                      />
+                      {reviewData[booking.id].error && <p className="text-red-600 text-xs">{reviewData[booking.id].error}</p>}
+                      <button
+                        onClick={() => submitReview(booking.id)}
+                        disabled={reviewData[booking.id].rating === 0 || reviewData[booking.id].submitting}
+                        className="bg-accent text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-teal-600 transition disabled:opacity-50"
+                      >
+                        {reviewData[booking.id].submitting ? 'Submitting...' : 'Submit Review'}
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
