@@ -24,6 +24,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([])
   const [bookings, setBookings] = useState([])
   const [pendingServices, setPendingServices] = useState([])
+  const [reports, setReports] = useState([])
   const [rejectReasons, setRejectReasons] = useState({})
   const [providerRejectReasons, setProviderRejectReasons] = useState({})
   const [activeTab, setActiveTab] = useState('overview')
@@ -38,18 +39,20 @@ export default function AdminDashboard() {
   const fetchAll = async () => {
     setLoading(true)
     try {
-      const [statsRes, providersRes, usersRes, bookingsRes, servicesRes] = await Promise.all([
+      const [statsRes, providersRes, usersRes, bookingsRes, servicesRes, reportsRes] = await Promise.all([
         api.get('/admin/stats'),
         api.get('/admin/providers'),
         api.get('/admin/users'),
         api.get('/admin/bookings'),
-        api.get('/admin/services/pending')
+        api.get('/admin/services/pending'),
+        api.get('/reports')
       ])
       setStats(statsRes.data)
       setProviders(providersRes.data)
       setUsers(usersRes.data)
       setBookings(bookingsRes.data)
       setPendingServices(servicesRes.data)
+      setReports(reportsRes.data)
     } catch (err) {
       if (err.response?.status === 403) {
         alert('Admin access required')
@@ -92,15 +95,25 @@ export default function AdminDashboard() {
         delete next[serviceId]
         return next
       })
+      alert('Service rejected successfully')
       await fetchAll()
     } catch (err) {
-      alert(err.response?.data?.error || 'Review failed')
+      alert('Failed to update service')
     } finally {
       setUpdatingId(null)
     }
   }
 
-  const tabs = ['overview', 'providers', 'services', 'users', 'bookings']
+  const handleUpdateReport = async (reportId, status) => {
+    try {
+      await api.patch(`/reports/${reportId}/status`, { status })
+      setReports(reports.map(r => r.id === reportId ? { ...r, status } : r))
+    } catch (err) {
+      alert('Failed to update report status')
+    }
+  }
+
+  const tabs = ['overview', 'providers', 'services', 'users', 'bookings', 'reports']
 
   if (loading) {
     return (
@@ -140,6 +153,11 @@ export default function AdminDashboard() {
               {tab === 'services' && pendingServices.length > 0 && (
                 <span className="ml-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
                   {pendingServices.length}
+                </span>
+              )}
+              {tab === 'reports' && reports.filter(r => r.status === 'PENDING').length > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                  {reports.filter(r => r.status === 'PENDING').length}
                 </span>
               )}
             </button>
@@ -540,6 +558,70 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Reports Tab */}
+        {activeTab === 'reports' && (
+          <div className="space-y-4">
+            {reports.length === 0 ? (
+              <div className="bg-white p-8 text-center rounded-lg shadow-sm">
+                <p className="text-gray-500">No reports have been filed.</p>
+              </div>
+            ) : (
+              reports.map(report => (
+                <div key={report.id} className="bg-white rounded-lg shadow-sm p-4 border-l-4 border-red-500">
+                  <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                          report.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                          report.status === 'RESOLVED' ? 'bg-green-100 text-green-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {report.status}
+                        </span>
+                        <h3 className="font-medium text-gray-800">{report.reason}</h3>
+                        <span className="text-sm text-gray-500">• {new Date(report.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      
+                      <div className="text-sm text-gray-600 mb-2">
+                        <span className="font-medium text-gray-700">Reported Provider:</span> {report.provider.user.name} 
+                        {report.provider.verificationStatus === 'REJECTED' && (
+                          <span className="ml-2 text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded">REVOKED</span>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-600 mb-2">
+                        <span className="font-medium text-gray-700">Reported By:</span> {report.customer.name} ({report.customer.email})
+                      </div>
+                      
+                      {report.description && (
+                        <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-700 mt-2">
+                          "{report.description}"
+                        </div>
+                      )}
+                    </div>
+                    
+                    {report.status === 'PENDING' && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleUpdateReport(report.id, 'DISMISSED')}
+                          className="px-3 py-1.5 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50"
+                        >
+                          Dismiss
+                        </button>
+                        <button
+                          onClick={() => handleUpdateReport(report.id, 'RESOLVED')}
+                          className="px-3 py-1.5 bg-primary text-white rounded text-sm font-medium hover:bg-blue-900"
+                        >
+                          Mark Resolved
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
       </div>

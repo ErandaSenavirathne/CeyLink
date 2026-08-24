@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import sriLankaCities from '../data/sriLankaCities'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -13,7 +14,7 @@ const districts = [
 export default function Register() {
   const [formData, setFormData] = useState({
     name: '', email: '', password: '', confirmPassword: '',
-    phone: '', role: 'CUSTOMER', district: '', address: ''
+    phone: '', role: 'CUSTOMER', district: '', city: '', address: ''
   })
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState('')
@@ -24,7 +25,11 @@ export default function Register() {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
+    if (name === 'district') {
+      setFormData({ ...formData, district: value, city: '' })
+    } else {
+      setFormData({ ...formData, [name]: value })
+    }
     // Clear the error for this field as user types
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' })
@@ -254,6 +259,24 @@ export default function Register() {
               ))}
             </select>
             <FieldError field="district" />
+          </div>
+
+          {/* City */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              City/Town <span className="text-gray-400 font-normal">(Optional)</span>
+            </label>
+            <select
+              name="city"
+              value={formData.city} onChange={handleChange}
+              disabled={!formData.district}
+              className={`${inputClass('city')} ${!formData.district ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+            >
+              <option value="">{formData.district ? `All cities in ${formData.district}` : 'Select a district first'}</option>
+              {formData.district && sriLankaCities[formData.district]?.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           </div>
 
           {/* Address — customers only */}

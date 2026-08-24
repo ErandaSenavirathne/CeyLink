@@ -28,7 +28,7 @@ exports.register = async (req, res) => {
       return res.status(400).json({ errors: errors.array() })
     }
 
-    const { name, email, password, phone, role, district, address } = req.body
+    const { name, email, password, phone, role, district, city, address } = req.body
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } })
@@ -41,13 +41,13 @@ exports.register = async (req, res) => {
 
     // Create user
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, phone, role, district, address }
+      data: { name, email, password: hashedPassword, phone, role, district, city, address }
     })
 
     // If registering as provider, create provider profile too
     if (role === 'PROVIDER') {
       await prisma.provider.create({
-        data: { userId: user.id, district: district || '' }
+        data: { userId: user.id, district: district || '', city: city || null }
       })
     }
 
@@ -64,6 +64,7 @@ exports.register = async (req, res) => {
         role: user.role,
         phone: user.phone,
         district: user.district,
+        city: user.city,
         address: user.address,
         createdAt: user.createdAt 
       }
@@ -108,6 +109,7 @@ exports.login = async (req, res) => {
         role: user.role,
         phone: user.phone,
         district: user.district,
+        city: user.city,
         address: user.address,
         createdAt: user.createdAt 
       }
@@ -122,7 +124,7 @@ exports.getMe = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      select: { id: true, name: true, email: true, role: true, phone: true, district: true, address: true, createdAt: true }
+      select: { id: true, name: true, email: true, role: true, phone: true, district: true, city: true, address: true, createdAt: true }
     })
     res.json(user)
   } catch (error) {
@@ -138,12 +140,12 @@ exports.updateProfile = async (req, res) => {
       return res.status(400).json({ errors: errors.array() })
     }
 
-    const { name, phone, district, address } = req.body
+    const { name, phone, district, city, address } = req.body
 
     const updatedUser = await prisma.user.update({
       where: { id: req.user.userId },
-      data: { name, phone, district, address },
-      select: { id: true, name: true, email: true, role: true, phone: true, district: true, address: true, createdAt: true }
+      data: { name, phone, district, city, address },
+      select: { id: true, name: true, email: true, role: true, phone: true, district: true, city: true, address: true, createdAt: true }
     })
 
     res.json({ message: 'Profile updated successfully', user: updatedUser })

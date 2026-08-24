@@ -4,11 +4,18 @@ const cloudinary = require('../utils/cloudinary')
 // GET all providers (with optional filters)
 exports.getProviders = async (req, res) => {
   try {
-    const { district, category } = req.query
+    const { district, city, category } = req.query
 
     const providers = await prisma.provider.findMany({
       where: {
         ...(district && { district }),
+        ...(city && {
+          OR: [
+            { city: city },
+            { city: null },
+            { city: '' }
+          ]
+        }),
         verificationStatus: 'VERIFIED',
         ...(category && {
           services: { some: { category, status: 'APPROVED' } }
@@ -132,7 +139,7 @@ exports.getProviderById = async (req, res) => {
 // UPDATE provider profile (protected - only the provider themselves)
 exports.updateProvider = async (req, res) => {
   try {
-    const { bio, district, skills, nicNumber } = req.body
+    const { bio, district, city, skills, nicNumber } = req.body
 
     if (nicNumber) {
       const oldFormat = /^[0-9]{9}[VvXx]$/
@@ -171,6 +178,7 @@ exports.updateProvider = async (req, res) => {
       data: {
         bio,
         district,
+        city: city || null,
         skills: skills || [],
         nicNumber
       }

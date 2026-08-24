@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
+import sriLankaCities from '../data/sriLankaCities'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -20,6 +21,7 @@ export default function MyProfile() {
     name: user?.name || '',
     phone: user?.phone || '',
     district: user?.district || '',
+    city: user?.city || '',
     address: user?.address || ''
   })
   const [profileLoading, setProfileLoading] = useState(false)
@@ -168,17 +170,36 @@ export default function MyProfile() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
-              <select
-                required
-                value={profileData.district}
-                onChange={e => setProfileData({ ...profileData, district: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm bg-white"
-              >
-                <option value="">Select District</option>
-                {districts.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
+                <select
+                  required
+                  value={profileData.district}
+                  onChange={e => setProfileData({ ...profileData, district: e.target.value, city: '' })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm bg-white"
+                >
+                  <option value="">Select District</option>
+                  {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  City/Town <span className="text-gray-400 font-normal">(Optional)</span>
+                </label>
+                <select
+                  value={profileData.city}
+                  onChange={e => setProfileData({ ...profileData, city: e.target.value })}
+                  disabled={!profileData.district}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm bg-white ${!profileData.district ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                >
+                  <option value="">{profileData.district ? `All cities in ${profileData.district}` : 'Select district first'}</option>
+                  {profileData.district && sriLankaCities[profileData.district]?.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div>

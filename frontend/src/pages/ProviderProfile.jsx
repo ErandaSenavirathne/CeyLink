@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
+import sriLankaCities from '../data/sriLankaCities'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -31,6 +32,7 @@ export default function ProviderProfile() {
   const [formData, setFormData] = useState({
     bio: '',
     district: '',
+    city: '',
     skills: [],
     nicNumber: ''
   })
@@ -80,6 +82,7 @@ export default function ProviderProfile() {
       setFormData({
         bio: provider.bio || '',
         district: provider.district || '',
+        city: provider.city || '',
         skills: provider.skills || [],
         nicNumber: provider.nicNumber || ''
       })
@@ -105,8 +108,14 @@ export default function ProviderProfile() {
   }
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-    if (e.target.name === 'nicNumber') {
+    const { name, value } = e.target
+    if (name === 'district') {
+      setFormData({ ...formData, district: value, city: '' })
+    } else {
+      setFormData({ ...formData, [name]: value })
+    }
+    
+    if (name === 'nicNumber') {
       setNicError(null)
     }
   }
@@ -368,17 +377,37 @@ export default function ProviderProfile() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
-                    <select
-                      name="district"
-                      value={formData.district}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
-                    >
-                      <option value="">Select District</option>
-                      {districts.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
+                      <select
+                        name="district"
+                        value={formData.district}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent bg-white"
+                      >
+                        <option value="">Select District</option>
+                        {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        City/Town <span className="text-gray-400 font-normal">(Optional)</span>
+                      </label>
+                      <select
+                        name="city"
+                        value={formData.city}
+                        onChange={handleChange}
+                        disabled={!formData.district}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent bg-white ${!formData.district ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                      >
+                        <option value="">{formData.district ? `All cities in ${formData.district}` : 'Select district first'}</option>
+                        {formData.district && sriLankaCities[formData.district]?.map(c => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div>

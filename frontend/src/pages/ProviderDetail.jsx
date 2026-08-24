@@ -54,6 +54,11 @@ export default function ProviderDetail() {
   const [reviewSuccess, setReviewSuccess] = useState('')
   const [reviewError, setReviewError] = useState('')
 
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [reportData, setReportData] = useState({ reason: '', description: '' })
+  const [reportSubmitting, setReportSubmitting] = useState(false)
+  const [reportMessage, setReportMessage] = useState('')
+
   useEffect(() => {
     fetchProvider()
     if (user?.role === 'CUSTOMER') {
@@ -98,9 +103,28 @@ export default function ProviderDetail() {
       await fetchMyBookings()
       await fetchProvider()
     } catch (err) {
-      setReviewError(err.response?.data?.error || 'Could not submit review')
+      setReviewError(err.response?.data?.error || 'Could not submit review.')
     } finally {
       setReviewSubmitting(false)
+    }
+  }
+
+  const handleReportSubmit = async (e) => {
+    e.preventDefault()
+    setReportSubmitting(true)
+    setReportMessage('')
+    try {
+      await api.post('/reports', {
+        providerId: provider.id,
+        reason: reportData.reason,
+        description: reportData.description
+      })
+      setReportMessage('Your report has been submitted. Our team will review it shortly.')
+      setTimeout(() => setShowReportModal(false), 2500)
+    } catch (err) {
+      setReportMessage('Failed to submit report. Please try again.')
+    } finally {
+      setReportSubmitting(false)
     }
   }
 
@@ -246,11 +270,20 @@ export default function ProviderDetail() {
 
             {/* Contact buttons — only for customers */}
             {user?.role === 'CUSTOMER' && (
-              <ContactButtons
-                name={provider.user.name}
-                phone={provider.user.phone}
-                label="Contact Provider"
-              />
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <ContactButtons
+                  name={provider.user.name}
+                  phone={provider.user.phone}
+                  email={provider.user.email}
+                />
+                
+                <button 
+                  onClick={() => setShowReportModal(true)}
+                  className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1 ml-auto transition"
+                >
+                  <span>🚩</span> Report Provider
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -542,6 +575,70 @@ export default function ProviderDetail() {
           </div>
         </div>
       </div>
+      
+      {/* Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Report Provider</h2>
+            <p className="text-gray-500 text-sm mb-4">
+              Please let us know why you are reporting this provider. Your report will be sent to the admin team.
+            </p>
+            
+            {reportMessage && (
+              <div className={`p-3 rounded-md mb-4 text-sm ${reportMessage.includes('Failed') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                {reportMessage}
+              </div>
+            )}
+            
+            <form onSubmit={handleReportSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Reason <span className="text-red-500">*</span></label>
+                <select 
+                  required
+                  value={reportData.reason}
+                  onChange={(e) => setReportData({ ...reportData, reason: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
+                >
+                  <option value="">Select a reason</option>
+                  <option value="Fake profile">Fake profile</option>
+                  <option value="Abusive behavior">Abusive behavior</option>
+                  <option value="Asked for money outside app">Asked for money outside app</option>
+                  <option value="Inappropriate content">Inappropriate content</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Additional details</label>
+                <textarea 
+                  rows="3"
+                  value={reportData.description}
+                  onChange={(e) => setReportData({ ...reportData, description: e.target.value })}
+                  placeholder="Provide more context..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </div>
+              
+              <div className="flex gap-2 justify-end pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setShowReportModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={reportSubmitting || !reportData.reason}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50"
+                >
+                  {reportSubmitting ? 'Submitting...' : 'Submit Report'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

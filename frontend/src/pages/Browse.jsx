@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import { useTranslation } from 'react-i18next'
+import sriLankaCities from '../data/sriLankaCities'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -62,12 +63,13 @@ export default function Browse() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [districtFilter, setDistrictFilter] = useState('')
+  const [cityFilter, setCityFilter] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     fetchProviders()
-  }, [districtFilter, categoryFilter])
+  }, [districtFilter, cityFilter, categoryFilter])
 
   const fetchProviders = async () => {
     setLoading(true)
@@ -75,6 +77,7 @@ export default function Browse() {
     try {
       const params = {}
       if (districtFilter) params.district = districtFilter
+      if (cityFilter) params.city = cityFilter
       if (categoryFilter) params.category = categoryFilter
       const res = await api.get('/providers', { params })
       setProviders(res.data)
@@ -121,7 +124,10 @@ export default function Browse() {
           {/* District filter */}
           <select
             value={districtFilter}
-            onChange={e => setDistrictFilter(e.target.value)}
+            onChange={e => {
+              setDistrictFilter(e.target.value)
+              setCityFilter('') // reset city when district changes
+            }}
             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent text-sm"
           >
             <option value="">All Districts</option>
@@ -129,6 +135,20 @@ export default function Browse() {
               <option key={d} value={d}>{t(`districts.${d}`)}</option>
             ))}
           </select>
+
+          {/* City filter */}
+          {districtFilter && (
+            <select
+              value={cityFilter}
+              onChange={e => setCityFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent text-sm"
+            >
+              <option value="">All cities in {districtFilter}</option>
+              {sriLankaCities[districtFilter]?.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          )}
 
           {/* Category filter */}
           <select
@@ -143,10 +163,11 @@ export default function Browse() {
           </select>
 
           {/* Clear filters */}
-          {(districtFilter || categoryFilter || searchQuery) && (
+          {(districtFilter || cityFilter || categoryFilter || searchQuery) && (
             <button
               onClick={() => {
                 setDistrictFilter('')
+                setCityFilter('')
                 setCategoryFilter('')
                 setSearchQuery('')
               }}

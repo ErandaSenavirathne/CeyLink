@@ -20,6 +20,7 @@ model User {
   phone        String?
   role         Role      @default(CUSTOMER)
   district     String?
+  city         String?
   address      String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -27,6 +28,7 @@ model User {
   provider     Provider?
   bookingsAsCustomer Booking[] @relation("CustomerBookings")
   reviews      Review[]
+  reportsSubmitted Report[]    @relation("CustomerReports")
 }
 
 model Provider {
@@ -38,6 +40,7 @@ model Provider {
   nicVerified        Boolean            @default(false)
   verificationStatus VerificationStatus @default(PENDING)
   district           String
+  city               String?
   hourlyRate         Float?
   profilePhoto       String?
   skills             String[]
@@ -48,6 +51,7 @@ model Provider {
   services           Service[]
   bookings           Booking[]          @relation("ProviderBookings")
   reviews            Review[]
+  reportsReceived    Report[]           @relation("ProviderReports")
 }
 
 model Service {
@@ -131,6 +135,25 @@ enum BookingStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
+}
+
+model Report {
+  id          String       @id @default(uuid())
+  customerId  String
+  customer    User         @relation("CustomerReports", fields: [customerId], references: [id])
+  providerId  String
+  provider    Provider     @relation("ProviderReports", fields: [providerId], references: [id])
+  reason      String
+  description String?
+  status      ReportStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
 }
 
 enum PaymentMode {
