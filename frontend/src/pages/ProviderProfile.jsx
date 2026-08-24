@@ -19,7 +19,7 @@ const categories = [
 ]
 
 export default function ProviderProfile() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
 
   const [loading, setLoading] = useState(true)
@@ -43,6 +43,12 @@ export default function ProviderProfile() {
   })
   
   const [nicError, setNicError] = useState(null)
+
+  // Delete Account State
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   const validateNIC = (nic) => {
     if (!nic) return null // NIC is optional
@@ -193,6 +199,22 @@ export default function ProviderProfile() {
       setMessage({ type: 'error', text: err.response?.data?.error || 'Failed to upload photo.' })
     } finally {
       setUploading(false)
+    }
+  }
+
+  const handleDeleteAccount = async (e) => {
+    e.preventDefault()
+    if (deleteConfirmation !== 'DELETE') return
+    
+    setDeleteLoading(true)
+    setDeleteError('')
+    try {
+      await api.delete('/auth/me')
+      logout()
+      navigate('/')
+    } catch (err) {
+      setDeleteError(err.response?.data?.error || 'Failed to delete account')
+      setDeleteLoading(false)
     }
   }
 
@@ -476,6 +498,20 @@ export default function ProviderProfile() {
 
                 </form>
               </div>
+
+              {/* Danger Zone */}
+              <div className="bg-red-50 rounded-xl border border-red-100 p-6 mt-6">
+                <h2 className="text-lg font-semibold text-red-800 mb-2">Danger Zone</h2>
+                <p className="text-red-600 text-sm mb-4">
+                  Deleting your account is permanent. It will anonymize your profile, hide you from search results, and you will lose access to CeyLink immediately.
+                </p>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-red-700 transition"
+                >
+                  Delete Account
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -663,6 +699,52 @@ export default function ProviderProfile() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Delete Account</h2>
+            <p className="text-gray-600 text-sm mb-4">
+              This action cannot be undone. To confirm, please type <strong>DELETE</strong> below.
+            </p>
+            
+            {deleteError && (
+              <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4 text-sm font-medium">
+                {deleteError}
+              </div>
+            )}
+            
+            <form onSubmit={handleDeleteAccount} className="space-y-4">
+              <input 
+                type="text" 
+                required
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                placeholder="DELETE"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              
+              <div className="flex gap-2 justify-end pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={deleteConfirmation !== 'DELETE' || deleteLoading}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50"
+                >
+                  {deleteLoading ? 'Deleting...' : 'Permanently Delete'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

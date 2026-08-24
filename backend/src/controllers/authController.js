@@ -90,6 +90,10 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' })
     }
 
+    if (!user.isActive) {
+      return res.status(401).json({ error: 'This account has been deleted' })
+    }
+
     // Check password
     const isValidPassword = await bcrypt.compare(password, user.password)
     if (!isValidPassword) {
@@ -151,6 +155,58 @@ exports.updateProfile = async (req, res) => {
     res.json({ message: 'Profile updated successfully', user: updatedUser })
   } catch (error) {
     res.status(500).json({ error: 'Could not update profile', details: error.message })
+  }
+}
+
+// DELETE (Anonymize) Profile
+exports.deleteProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId
+    const user = await prisma.user.findUnique({ where: { id: userId } })
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    const crypto = require('crypto')
+    const randomHash = crypto.randomBytes(8).toString('hex')
+
+    // Anonymize user
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: 'Deleted User',
+        email: `deleted_${randomHash}@example.com`,
+        phone: null,
+        address: null,
+        district: null,
+        city: null,
+        isActive: false
+      }
+    })
+
+    // If provider, anonymize provider profile
+    if (user.role === 'PROVIDER') {
+      const provider = await prisma.provider.findUnique({ where: { userId } })
+      if (provider) {
+        await prisma.provider.update({
+          where: { userId },
+          data: {
+            bio: null,
+            nicNumber: null,
+            profilePhoto: null,
+            skills: [],
+            district: 'N/A',
+            city: null,
+            verificationStatus: 'REJECTED'
+          }
+        })
+      }
+    }
+
+    res.json({ message: 'Account deleted and anonymized successfully' })
+  } catch (error) {
+    res.status(500).json({ error: 'Could not delete account', details: error.message })
   }
 }
 

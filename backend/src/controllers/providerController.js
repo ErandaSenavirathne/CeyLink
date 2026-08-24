@@ -17,6 +17,7 @@ exports.getProviders = async (req, res) => {
           ]
         }),
         verificationStatus: 'VERIFIED',
+        user: { isActive: true },
         ...(category && {
           services: { some: { category, status: 'APPROVED' } }
         })

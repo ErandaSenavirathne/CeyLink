@@ -187,11 +187,15 @@ export default function ProviderDashboard() {
             <div key={booking.id} className="bg-white rounded-lg shadow-sm p-5">
               <div className="flex justify-between items-start mb-2">
                 <div>
-                  <h3 className="font-semibold text-gray-800">{booking.service.title}</h3>
-                  <p className="text-sm text-gray-500">Customer: {booking.customer.name}</p>
-                  {booking.customer.phone && (
-                    <p className="text-sm text-gray-500">📞 {booking.customer.phone}</p>
-                  )}
+                  <h3 className="font-semibold text-gray-800 mb-1">{booking.service.title}</h3>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm text-gray-500 font-medium">Customer: {booking.customer.name}</p>
+                    <ContactButtons
+                      name={booking.customer.name}
+                      phone={booking.customer.phone}
+                      email={booking.customer.email}
+                    />
+                  </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusStyles[booking.status]}`}>

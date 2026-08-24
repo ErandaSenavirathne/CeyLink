@@ -101,5 +101,6 @@ router.post('/login', loginValidation, authController.login)
 router.get('/me', authMiddleware, authController.getMe)
 router.put('/profile', authMiddleware, updateProfileValidation, authController.updateProfile)
 router.put('/password', authMiddleware, changePasswordValidation, authController.changePassword)
+router.delete('/me', authMiddleware, authController.deleteProfile)
 
 module.exports = router
