@@ -13,6 +13,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import ProviderProfile from './pages/ProviderProfile'
 import MyProfile from './pages/MyProfile'
 import Landing from './pages/Landing'
+import ScrollToTop from './components/ScrollToTop'
 
 function App() {
   const { user, loading } = useAuth()
@@ -26,7 +27,9 @@ function App() {
   }
 
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       <Route path="/" element={user ? (<Navigate to={user.role === 'ADMIN' ? '/admin' : user.role === 'PROVIDER' ? '/dashboard' : '/browse'} />) : (<Landing />)} />
       <Route path="/login" element={user ? (<Navigate to={user.role === 'ADMIN' ? '/admin' : user.role === 'PROVIDER' ? '/dashboard' : '/browse'} />) : (<Login />)} />
       <Route path="/admin/login" element={user ? (<Navigate to={user.role === 'ADMIN' ? '/admin' : user.role === 'PROVIDER' ? '/dashboard' : '/browse'} />) : (<AdminLogin />)} />
@@ -41,6 +44,7 @@ function App() {
       <Route path="/provider-profile" element={<ProtectedRoute allowedRoles={['PROVIDER']}><ProviderProfile /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
     </Routes>
+    </>
   )
 }
 

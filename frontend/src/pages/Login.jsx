@@ -93,11 +93,6 @@ export default function Login() {
           <Link to="/register" className="text-accent font-semibold">{t('login.signUp')}</Link>
         </p>
 
-        <div className="mt-6 pt-4 border-t border-gray-100 text-center">
-          <Link to="/admin/login" className="text-xs text-primary hover:text-blue-900 font-semibold transition">
-            Are you an administrator? Admin Login
-          </Link>
-        </div>
         </div>
       </div>
     </div>
