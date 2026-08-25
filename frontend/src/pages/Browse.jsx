@@ -68,21 +68,43 @@ export default function Browse() {
   const [cityFilter, setCityFilter] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  
+  // Pagination state
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalProviders, setTotalProviders] = useState(0)
+
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery)
+      setPage(1) // Reset to page 1 on new search
+    }, 500)
+    return () => clearTimeout(handler)
+  }, [searchQuery])
 
   useEffect(() => {
     fetchProviders()
-  }, [districtFilter, cityFilter, categoryFilter])
+  }, [districtFilter, cityFilter, categoryFilter, debouncedSearch, page])
 
   const fetchProviders = async () => {
     setLoading(true)
     setError('')
     try {
-      const params = {}
+      const params = {
+        page,
+        limit: 10
+      }
       if (districtFilter) params.district = districtFilter
       if (cityFilter) params.city = cityFilter
       if (categoryFilter) params.category = categoryFilter
+      if (debouncedSearch) params.search = debouncedSearch
+
       const res = await api.get('/providers', { params })
-      setProviders(res.data)
+      setProviders(res.data.data)
+      setTotalPages(res.data.pagination.totalPages)
+      setTotalProviders(res.data.pagination.total)
     } catch {
       const errorMsg = 'Could not load providers. Please try again.'
       setError(errorMsg)
@@ -91,18 +113,6 @@ export default function Browse() {
       setLoading(false)
     }
   }
-
-  // Client-side search filter on provider name or service title
-  const filteredProviders = providers.filter(provider => {
-    if (!searchQuery.trim()) return true
-    const query = searchQuery.toLowerCase()
-    const nameMatch = provider.user.name.toLowerCase().includes(query)
-    const serviceMatch = provider.services.some(s =>
-      s.title.toLowerCase().includes(query) ||
-      s.category.toLowerCase().includes(query)
-    )
-    return nameMatch || serviceMatch
-  })
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -134,6 +144,7 @@ export default function Browse() {
             onChange={e => {
               setDistrictFilter(e.target.value)
               setCityFilter('') // reset city when district changes
+              setPage(1) // reset page
             }}
             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent text-sm"
           >
@@ -147,7 +158,10 @@ export default function Browse() {
           {districtFilter && (
             <select
               value={cityFilter}
-              onChange={e => setCityFilter(e.target.value)}
+              onChange={e => {
+                setCityFilter(e.target.value)
+                setPage(1)
+              }}
               className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent text-sm"
             >
               <option value="">{t('register.allCitiesIn', 'All cities in')} {t(`districts.${districtFilter}`, districtFilter)}</option>
@@ -160,7 +174,10 @@ export default function Browse() {
           {/* Category filter */}
           <select
             value={categoryFilter}
-            onChange={e => setCategoryFilter(e.target.value)}
+            onChange={e => {
+              setCategoryFilter(e.target.value)
+              setPage(1)
+            }}
             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent text-sm"
           >
             <option value="">{t('browse.allCategories')}</option>
@@ -177,6 +194,7 @@ export default function Browse() {
                 setCityFilter('')
                 setCategoryFilter('')
                 setSearchQuery('')
+                setPage(1)
               }}
               className="px-3 py-2 text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 transition"
             >
@@ -188,9 +206,9 @@ export default function Browse() {
         {/* Results count */}
         {!loading && (
           <p className="text-sm text-gray-500 mb-4">
-            {filteredProviders.length === 0
+            {totalProviders === 0
               ? t('browse.noProvidersFound', 'No providers found')
-              : `${filteredProviders.length} ${filteredProviders.length !== 1 ? t('browse.providersFound', 'providers found') : t('browse.providerFound', 'provider found')}`}
+              : `${totalProviders} ${totalProviders !== 1 ? t('browse.providersFound', 'providers found') : t('browse.providerFound', 'provider found')}`}
           </p>
         )}
 
@@ -215,7 +233,7 @@ export default function Browse() {
           <p className="text-red-600">{error}</p>
         )}
 
-        {!loading && filteredProviders.length === 0 && !error && (
+        {!loading && providers.length === 0 && !error && (
           <div className="bg-white rounded-lg p-8 text-center">
             <p className="text-gray-400 text-4xl mb-3">🔍</p>
             <p className="text-gray-600 font-medium">{t('browse.noResults', 'No verified providers found')}</p>
@@ -227,7 +245,7 @@ export default function Browse() {
 
         {/* Provider Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredProviders.map(provider => (
+          {providers.map(provider => (
             <div
               key={provider.id}
               className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
@@ -344,6 +362,29 @@ export default function Browse() {
             </div>
           ))}
         </div>
+
+        {/* Pagination Controls */}
+        {!loading && totalPages > 1 && (
+          <div className="flex justify-center items-center mt-8 gap-4">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-600">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

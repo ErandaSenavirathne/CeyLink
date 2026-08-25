@@ -4,24 +4,42 @@ const cloudinary = require('../utils/cloudinary')
 // GET all providers (with optional filters)
 exports.getProviders = async (req, res) => {
   try {
-    const { district, city, category } = req.query
+    const { district, city, category, search, page = 1, limit = 10 } = req.query
 
-    const providers = await prisma.provider.findMany({
-      where: {
-        ...(district && { district }),
-        ...(city && {
-          OR: [
-            { city: city },
-            { city: null },
-            { city: '' }
-          ]
-        }),
-        verificationStatus: 'VERIFIED',
-        user: { isActive: true },
-        ...(category && {
-          services: { some: { category, status: 'APPROVED' } }
-        })
-      },
+    const pageNumber = parseInt(page, 10)
+    const pageSize = parseInt(limit, 10)
+    const skip = (pageNumber - 1) * pageSize
+
+    // Build the dynamic where clause
+    const whereClause = {
+      ...(district && { district }),
+      ...(city && {
+        OR: [
+          { city: city },
+          { city: null },
+          { city: '' }
+        ]
+      }),
+      verificationStatus: 'VERIFIED',
+      user: { isActive: true },
+      ...(category && {
+        services: { some: { category, status: 'APPROVED' } }
+      }),
+      ...(search && {
+        OR: [
+          { user: { name: { contains: search, mode: 'insensitive' } } },
+          { services: { some: { title: { contains: search, mode: 'insensitive' } } } },
+          { services: { some: { category: { contains: search, mode: 'insensitive' } } } }
+        ]
+      })
+    }
+
+    const [totalProviders, providers] = await prisma.$transaction([
+      prisma.provider.count({ where: whereClause }),
+      prisma.provider.findMany({
+        where: whereClause,
+        skip,
+        take: pageSize,
       include: {
         user: { select: { name: true, phone: true, createdAt: true } },
         services: { where: { status: 'APPROVED' } },
@@ -37,6 +55,7 @@ exports.getProviders = async (req, res) => {
         }
       }
     })
+    ])
 
     const providersWithStats = providers.map(provider => {
       const ratings = provider.reviews.map(r => r.rating)
@@ -70,7 +89,15 @@ exports.getProviders = async (req, res) => {
       }
     })
 
-    res.json(providersWithStats)
+    res.json({
+      data: providersWithStats,
+      pagination: {
+        total: totalProviders,
+        page: pageNumber,
+        limit: pageSize,
+        totalPages: Math.ceil(totalProviders / pageSize)
+      }
+    })
   } catch (error) {
     res.status(500).json({ error: 'Could not fetch providers', details: error.message })
   }
