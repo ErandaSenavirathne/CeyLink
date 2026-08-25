@@ -5,6 +5,7 @@ import sriLankaCities from '../data/sriLankaCities'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
 import Navbar from '../components/Navbar'
+import SEO from '../components/SEO'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -146,6 +147,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      <SEO title="Register | CeyLink" />
       <Navbar />
       <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-md">

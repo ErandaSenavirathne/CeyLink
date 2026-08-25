@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import StarRatingInput from '../components/StarRatingInput'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
+import SEO from '../components/SEO'
 
 // Star display component
 function Stars({ rating, size = 'sm' }) {
@@ -178,9 +179,13 @@ export default function ProviderDetail() {
   const memberSince = new Date(provider.user.createdAt).toLocaleDateString('en-LK', {
     year: 'numeric', month: 'long'
   })
+  
+  const seoTitle = `${provider.user.name} - ${provider.services[0]?.category || 'Service Provider'} in ${provider.district} | CeyLink`
+  const seoDesc = provider.bio ? (provider.bio.length > 150 ? provider.bio.substring(0, 147) + '...' : provider.bio) : `Book ${provider.user.name} for ${provider.services.map(s => s.category).join(', ')} services on CeyLink.`
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO title={seoTitle} description={seoDesc} />
       <Navbar />
 
       {/* Back button */}

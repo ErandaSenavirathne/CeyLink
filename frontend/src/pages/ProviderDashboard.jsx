@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
+import SEO from '../components/SEO'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import ContactButtons from '../components/ContactButtons'
@@ -104,7 +105,8 @@ export default function ProviderDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <SEO title="Provider Dashboard | CeyLink" />
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 py-8">

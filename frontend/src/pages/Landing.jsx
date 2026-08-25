@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import SEO from '../components/SEO'
 
 export default function Landing() {
     const { t, i18n } = useTranslation()
@@ -41,7 +42,11 @@ export default function Landing() {
     ]
 
     return (
-        <div className="min-h-screen bg-white font-sans">
+        <div className="min-h-screen flex flex-col font-sans">
+            <SEO 
+                title="CeyLink | Find Local Service Providers in Sri Lanka"
+                description="Connect with trusted plumbers, electricians, tutors, and more across Sri Lanka."
+            />
 
             {/* ── NAVBAR ──────────────────────────────────────────────── */}
             <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">

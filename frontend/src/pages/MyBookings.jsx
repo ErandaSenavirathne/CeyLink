@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
+import SEO from '../components/SEO'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import ContactButtons from '../components/ContactButtons'
@@ -93,6 +94,7 @@ export default function MyBookings() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO title="My Bookings | CeyLink" />
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 py-8">

@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
+import SEO from '../components/SEO'
 
 const statusStyles = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -128,6 +129,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
+        <SEO title="Admin Dashboard | Loading..." />
         <Navbar />
         <p className="text-center text-gray-500 mt-10">Loading admin dashboard...</p>
       </div>
@@ -135,7 +137,8 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+      <SEO title="Admin Dashboard | CeyLink" />
       <Navbar />
 
       <div className="max-w-5xl mx-auto px-4 py-8">

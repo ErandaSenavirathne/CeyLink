@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar'
 import sriLankaCities from '../data/sriLankaCities'
 import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
+import SEO from '../components/SEO'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -275,6 +276,7 @@ export default function ProviderProfile() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO title="Provider Profile | CeyLink" />
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-8">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
+import SEO from '../components/SEO'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import sriLankaCities from '../data/sriLankaCities'
@@ -105,6 +106,10 @@ export default function Browse() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO 
+        title="Browse Services | CeyLink"
+        description="Search and filter through hundreds of verified service providers in your area."
+      />
       <Navbar />
 
       <div className="max-w-5xl mx-auto px-4 py-8">

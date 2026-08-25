@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import Navbar from '../components/Navbar'
+import SEO from '../components/SEO'
 
 export default function Login() {
   const { t } = useTranslation()
@@ -39,7 +40,8 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      <SEO title="Login | CeyLink" />
       <Navbar />
       <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-md">

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
+import SEO from '../components/SEO'
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('')
@@ -38,6 +39,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center px-4">
+      <SEO title="Admin Login | CeyLink" />
       <div className="bg-slate-800/80 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-700">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">
