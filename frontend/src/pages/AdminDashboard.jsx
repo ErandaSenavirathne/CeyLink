@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
@@ -62,7 +63,7 @@ export default function AdminDashboard() {
       setReports(reportsRes.data)
     } catch (err) {
       if (err.response?.status === 403) {
-        alert('Admin access required')
+        toast.error('Admin access required')
         navigate('/browse')
       }
     } finally {
@@ -83,8 +84,9 @@ export default function AdminDashboard() {
         return next
       })
       await fetchAll()
+      toast.success('Provider verification updated')
     } catch (err) {
-      alert(err.response?.data?.error || 'Update failed')
+      toast.error(err.response?.data?.error || 'Update failed')
     } finally {
       setUpdatingId(null)
     }
@@ -102,10 +104,10 @@ export default function AdminDashboard() {
         delete next[serviceId]
         return next
       })
-      alert('Service rejected successfully')
+      toast.success('Service updated successfully')
       await fetchAll()
     } catch (err) {
-      alert('Failed to update service')
+      toast.error('Failed to update service')
     } finally {
       setUpdatingId(null)
     }
@@ -115,8 +117,9 @@ export default function AdminDashboard() {
     try {
       await api.patch(`/reports/${reportId}/status`, { status })
       setReports(reports.map(r => r.id === reportId ? { ...r, status } : r))
+      toast.success('Report status updated')
     } catch (err) {
-      alert('Failed to update report status')
+      toast.error('Failed to update report status')
     }
   }
 

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import ContactButtons from '../components/ContactButtons'
@@ -73,9 +74,10 @@ export default function ProviderDashboard() {
     setUpdatingId(bookingId)
     try {
       await api.patch(`/bookings/${bookingId}/status`, { status: newStatus })
+      toast.success(t('dashboard.statusUpdated', 'Status updated successfully'))
       fetchBookings()
     } catch (err) {
-      alert(err.response?.data?.error || 'Could not update booking')
+      toast.error(err.response?.data?.error || 'Could not update booking')
     } finally {
       setUpdatingId(null)
     }

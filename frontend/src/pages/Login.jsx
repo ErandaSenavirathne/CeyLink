@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import Navbar from '../components/Navbar'
 
@@ -20,6 +21,7 @@ export default function Login() {
     setLoading(true)
     try {
       const user = await login(email, password)
+      toast.success(t('login.success', 'Login successful! Welcome back.'))
       if (user.role === 'ADMIN') {
         navigate('/admin')
       } else if (user.role === 'PROVIDER') {
@@ -28,7 +30,9 @@ export default function Login() {
         navigate('/browse')
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please try again.')
+      const errorMsg = err.response?.data?.error || 'Login failed. Please try again.'
+      setError(errorMsg)
+      toast.error(errorMsg)
     } finally {
       setLoading(false)
     }

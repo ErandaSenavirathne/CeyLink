@@ -6,6 +6,7 @@ import ContactButtons from '../components/ContactButtons'
 import { useAuth } from '../context/AuthContext'
 import StarRatingInput from '../components/StarRatingInput'
 import { useTranslation } from 'react-i18next'
+import toast from 'react-hot-toast'
 
 // Star display component
 function Stars({ rating, size = 'sm' }) {
@@ -53,13 +54,9 @@ export default function ProviderDetail() {
   const [reviewingBookingId, setReviewingBookingId] = useState(null)
   const [reviewData, setReviewData] = useState({ rating: 0, reviewText: '' })
   const [reviewSubmitting, setReviewSubmitting] = useState(false)
-  const [reviewSuccess, setReviewSuccess] = useState('')
-  const [reviewError, setReviewError] = useState('')
-
   const [showReportModal, setShowReportModal] = useState(false)
   const [reportData, setReportData] = useState({ reason: '', description: '' })
   const [reportSubmitting, setReportSubmitting] = useState(false)
-  const [reportMessage, setReportMessage] = useState('')
 
   useEffect(() => {
     fetchProvider()
@@ -83,7 +80,9 @@ export default function ProviderDetail() {
       const res = await api.get(`/providers/${id}`)
       setProvider(res.data)
     } catch {
-      setError('Could not load provider details.')
+      const errorMsg = 'Could not load provider details.'
+      setError(errorMsg)
+      toast.error(errorMsg)
     } finally {
       setLoading(false)
     }
@@ -92,20 +91,18 @@ export default function ProviderDetail() {
   const submitReview = async (e) => {
     e.preventDefault()
     setReviewSubmitting(true)
-    setReviewError('')
-    setReviewSuccess('')
     try {
       await api.post('/reviews', {
         bookingId: reviewingBookingId,
         rating: reviewData.rating,
         reviewText: reviewData.reviewText
       })
-      setReviewSuccess('Your review has been submitted. Thank you!')
+      toast.success('Your review has been submitted. Thank you!')
       setReviewData({ rating: 0, reviewText: '' })
       await fetchMyBookings()
       await fetchProvider()
     } catch (err) {
-      setReviewError(err.response?.data?.error || 'Could not submit review.')
+      toast.error(err.response?.data?.error || 'Could not submit review.')
     } finally {
       setReviewSubmitting(false)
     }
@@ -114,17 +111,16 @@ export default function ProviderDetail() {
   const handleReportSubmit = async (e) => {
     e.preventDefault()
     setReportSubmitting(true)
-    setReportMessage('')
     try {
       await api.post('/reports', {
         providerId: provider.id,
         reason: reportData.reason,
         description: reportData.description
       })
-      setReportMessage('Your report has been submitted. Our team will review it shortly.')
+      toast.success('Your report has been submitted. Our team will review it shortly.')
       setTimeout(() => setShowReportModal(false), 2500)
     } catch (err) {
-      setReportMessage('Failed to submit report. Please try again.')
+      toast.error('Failed to submit report. Please try again.')
     } finally {
       setReportSubmitting(false)
     }
@@ -438,12 +434,6 @@ export default function ProviderDetail() {
                       You have {unreviewedBookings.length} completed booking(s) with this provider that haven't been reviewed yet.
                     </p>
 
-                    {reviewSuccess && (
-                      <div className="bg-green-100 text-green-700 p-3 rounded-md mb-4 text-sm font-medium">
-                        {reviewSuccess}
-                      </div>
-                    )}
-
                     <form onSubmit={submitReview} className="space-y-4">
                       {unreviewedBookings.length > 1 ? (
                         <div>
@@ -485,10 +475,6 @@ export default function ProviderDetail() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm"
                         />
                       </div>
-
-                      {reviewError && (
-                        <p className="text-red-600 text-sm">{reviewError}</p>
-                      )}
 
                       <button
                         type="submit"
@@ -586,12 +572,6 @@ export default function ProviderDetail() {
             <p className="text-gray-500 text-sm mb-4">
               {t('providerDetail.reportModalText')}
             </p>
-            
-            {reportMessage && (
-              <div className={`p-3 rounded-md mb-4 text-sm ${reportMessage.includes('Failed') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                {reportMessage}
-              </div>
-            )}
             
             <form onSubmit={handleReportSubmit} className="space-y-4">
               <div>

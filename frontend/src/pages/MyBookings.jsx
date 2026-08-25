@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import ContactButtons from '../components/ContactButtons'
@@ -48,9 +49,10 @@ export default function MyBookings() {
     if (!confirm(t('myBookings.confirmCancel') || 'Are you sure you want to cancel this booking?')) return
     try {
       await api.patch(`/bookings/${bookingId}/cancel`)
+      toast.success(t('myBookings.cancelSuccess', 'Booking cancelled successfully'))
       fetchBookings()
     } catch (err) {
-      alert(err.response?.data?.error || 'Could not cancel booking')
+      toast.error(err.response?.data?.error || 'Could not cancel booking')
     }
   }
 
@@ -67,7 +69,7 @@ export default function MyBookings() {
         reviewText: data.text
       })
       fetchBookings()
-      alert(t('myBookings.reviewSuccess') || 'Review submitted successfully')
+      toast.success(t('myBookings.reviewSuccess') || 'Review submitted successfully')
     } catch (err) {
       setReviewData(prev => ({
         ...prev,

@@ -5,6 +5,7 @@ import api from '../services/api'
 import Navbar from '../components/Navbar'
 import sriLankaCities from '../data/sriLankaCities'
 import { useTranslation } from 'react-i18next'
+import toast from 'react-hot-toast'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -101,9 +102,9 @@ export default function MyProfile() {
       setProfilePhoto(res.data.profilePhoto)
       setSelectedFile(null)
       setPhotoPreview(null)
-      setPhotoMessage({ type: 'success', text: 'Profile photo updated!' })
+      toast.success('Profile photo updated!')
     } catch (err) {
-      setPhotoMessage({ type: 'error', text: err.response?.data?.error || 'Failed to upload photo.' })
+      toast.error(err.response?.data?.error || 'Failed to upload photo.')
     } finally {
       setUploading(false)
     }
@@ -118,12 +119,12 @@ export default function MyProfile() {
     setProfileSuccess('')
     try {
       await api.put('/auth/profile', profileData)
-      setProfileSuccess('Personal information updated successfully.')
+      toast.success(t('myProfile.updateSuccess', 'Personal information updated successfully.'))
     } catch (err) {
       if (err.response?.data?.errors) {
-        setProfileError(err.response.data.errors.map(e => e.msg).join(', '))
+        toast.error(err.response.data.errors.map(e => e.msg).join(', '))
       } else {
-        setProfileError(err.response?.data?.error || 'Failed to update profile')
+        toast.error(err.response?.data?.error || 'Failed to update profile')
       }
     } finally {
       setProfileLoading(false)
@@ -136,7 +137,8 @@ export default function MyProfile() {
     setPasswordSuccess('')
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      return setPasswordError('New passwords do not match')
+      toast.error('New passwords do not match')
+      return
     }
 
     setPasswordLoading(true)
@@ -145,13 +147,13 @@ export default function MyProfile() {
         oldPassword: passwordData.oldPassword,
         newPassword: passwordData.newPassword
       })
-      setPasswordSuccess('Password changed successfully.')
+      toast.success('Password changed successfully.')
       setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' })
     } catch (err) {
       if (err.response?.data?.errors) {
-        setPasswordError(err.response.data.errors.map(e => e.msg).join(', '))
+        toast.error(err.response.data.errors.map(e => e.msg).join(', '))
       } else {
-        setPasswordError(err.response?.data?.error || 'Failed to change password')
+        toast.error(err.response?.data?.error || 'Failed to change password')
       }
     } finally {
       setPasswordLoading(false)
@@ -166,10 +168,11 @@ export default function MyProfile() {
     setDeleteError('')
     try {
       await api.delete('/auth/me')
+      toast.success('Account deleted successfully')
       logout()
       navigate('/')
     } catch (err) {
-      setDeleteError(err.response?.data?.error || 'Failed to delete account')
+      toast.error(err.response?.data?.error || 'Failed to delete account')
       setDeleteLoading(false)
     }
   }
@@ -186,12 +189,6 @@ export default function MyProfile() {
         {/* Profile Photo Upload */}
         <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-accent">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">{t('myProfile.profilePicture')}</h2>
-          
-          {photoMessage.text && (
-            <div className={`p-3 rounded-md mb-4 text-sm font-medium ${photoMessage.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-              {photoMessage.text}
-            </div>
-          )}
 
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-gray-200">
@@ -263,9 +260,6 @@ export default function MyProfile() {
         {/* Personal Information */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">{t('myProfile.personalInformation')}</h2>
-
-          {profileSuccess && <div className="bg-green-100 text-green-700 p-3 rounded-md mb-4 text-sm font-medium">{profileSuccess}</div>}
-          {profileError && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4 text-sm font-medium">{profileError}</div>}
 
           <form onSubmit={handleProfileSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -347,9 +341,6 @@ export default function MyProfile() {
         {/* Security Section */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">{t('myProfile.security')}</h2>
-
-          {passwordSuccess && <div className="bg-green-100 text-green-700 p-3 rounded-md mb-4 text-sm font-medium">{passwordSuccess}</div>}
-          {passwordError && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4 text-sm font-medium">{passwordError}</div>}
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>

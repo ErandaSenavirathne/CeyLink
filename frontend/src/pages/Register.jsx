@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import sriLankaCities from '../data/sriLankaCities'
 import { useTranslation } from 'react-i18next'
+import toast from 'react-hot-toast'
 import Navbar from '../components/Navbar'
 
 const districts = [
@@ -101,6 +102,7 @@ export default function Register() {
     const validationErrors = validate()
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
+      toast.error(t('register.errors.fixForm', 'Please fix the errors in the form.'))
       // Scroll to top to show errors
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
@@ -110,6 +112,7 @@ export default function Register() {
     try {
       const { confirmPassword, ...submitData } = formData
       await register(submitData)
+      toast.success(t('register.success', 'Registration successful! Welcome to CeyLink.'))
       navigate(formData.role === 'PROVIDER' ? '/dashboard' : '/browse')
     } catch (err) {
       // Handle backend validation errors
@@ -120,8 +123,11 @@ export default function Register() {
           backendErrors[e.path] = e.msg
         })
         setErrors(backendErrors)
+        toast.error(t('register.errors.fixForm', 'Please fix the errors in the form.'))
       } else {
-        setServerError(data?.error || 'Registration failed. Please try again.')
+        const errorMsg = data?.error || 'Registration failed. Please try again.'
+        setServerError(errorMsg)
+        toast.error(errorMsg)
       }
     } finally {
       setLoading(false)

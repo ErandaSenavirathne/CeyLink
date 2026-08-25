@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 
@@ -70,10 +71,12 @@ export default function BookingForm() {
     // Basic client-side validation matching the backend's allowed types and size limit
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
     if (!allowedTypes.includes(file.type)) {
+      toast.error('Please select a JPEG, PNG, or WebP image.')
       setError('Please select a JPEG, PNG, or WebP image.')
       return
     }
     if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be smaller than 5MB.')
       setError('Image must be smaller than 5MB.')
       return
     }
@@ -118,10 +121,13 @@ export default function BookingForm() {
         photoUrls
       })
 
+      toast.success(t('bookingForm.confirmed', 'Booking confirmed successfully!'))
       setSuccess(true)
       setTimeout(() => navigate('/my-bookings'), 2000)
     } catch (err) {
-      setError(err.response?.data?.error || 'Booking failed. Please try again.')
+      const errorMsg = err.response?.data?.error || 'Booking failed. Please try again.'
+      setError(errorMsg)
+      toast.error(errorMsg)
     } finally {
       setSubmitting(false)
       setUploadingPhoto(false)

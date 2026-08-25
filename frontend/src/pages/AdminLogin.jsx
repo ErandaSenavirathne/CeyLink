@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 
 export default function AdminLogin() {
@@ -19,12 +20,17 @@ export default function AdminLogin() {
       const user = await login(email, password)
       if (user.role !== 'ADMIN') {
         logout()
-        setError('Access denied: Admin privileges required.')
+        const errorMsg = 'Access denied: Admin privileges required.'
+        setError(errorMsg)
+        toast.error(errorMsg)
       } else {
+        toast.success('Admin login successful')
         navigate('/admin')
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please check your credentials.')
+      const errorMsg = err.response?.data?.error || 'Login failed. Please check your credentials.'
+      setError(errorMsg)
+      toast.error(errorMsg)
     } finally {
       setLoading(false)
     }

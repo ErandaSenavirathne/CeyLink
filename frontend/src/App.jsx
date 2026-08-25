@@ -14,6 +14,7 @@ import ProviderProfile from './pages/ProviderProfile'
 import MyProfile from './pages/MyProfile'
 import Landing from './pages/Landing'
 import ScrollToTop from './components/ScrollToTop'
+import { Toaster } from 'react-hot-toast'
 
 function App() {
   const { user, loading } = useAuth()
@@ -29,6 +30,7 @@ function App() {
   return (
     <>
       <ScrollToTop />
+      <Toaster position="top-center" />
       <Routes>
       <Route path="/" element={user ? (<Navigate to={user.role === 'ADMIN' ? '/admin' : user.role === 'PROVIDER' ? '/dashboard' : '/browse'} />) : (<Landing />)} />
       <Route path="/login" element={user ? (<Navigate to={user.role === 'ADMIN' ? '/admin' : user.role === 'PROVIDER' ? '/dashboard' : '/browse'} />) : (<Login />)} />

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
+import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import sriLankaCities from '../data/sriLankaCities'
 
@@ -82,7 +83,9 @@ export default function Browse() {
       const res = await api.get('/providers', { params })
       setProviders(res.data)
     } catch {
-      setError('Could not load providers. Please try again.')
+      const errorMsg = 'Could not load providers. Please try again.'
+      setError(errorMsg)
+      toast.error(errorMsg)
     } finally {
       setLoading(false)
     }

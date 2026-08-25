@@ -5,6 +5,7 @@ import api from '../services/api'
 import Navbar from '../components/Navbar'
 import sriLankaCities from '../data/sriLankaCities'
 import { useTranslation } from 'react-i18next'
+import toast from 'react-hot-toast'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -27,7 +28,6 @@ export default function ProviderProfile() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [message, setMessage] = useState({ type: '', text: '' })
 
   const [activeTab, setActiveTab] = useState('profile')
 
@@ -100,7 +100,7 @@ export default function ProviderProfile() {
       })
       setProfilePhoto(provider.profilePhoto)
     } catch (err) {
-      setMessage({ type: 'error', text: 'Failed to load profile.' })
+      toast.error('Failed to load profile.')
     } finally {
       setLoading(false)
     }
@@ -164,15 +164,14 @@ export default function ProviderProfile() {
     }
 
     setSaving(true)
-    setMessage({ type: '', text: '' })
     try {
       await api.put('/providers/profile', formData)
-      setMessage({ type: 'success', text: 'Profile updated successfully!' })
+      toast.success('Profile updated successfully!')
     } catch (err) {
       if (err.response?.status === 400 && err.response?.data?.error?.includes('already registered')) {
         setNicError(err.response.data.error)
       } else {
-        setMessage({ type: 'error', text: err.response?.data?.error || 'Failed to update profile.' })
+        toast.error(err.response?.data?.error || 'Failed to update profile.')
       }
     } finally {
       setSaving(false)
@@ -182,7 +181,6 @@ export default function ProviderProfile() {
   const handleUploadPhoto = async () => {
     if (!selectedFile) return
     setUploading(true)
-    setMessage({ type: '', text: '' })
 
     const uploadData = new FormData()
     uploadData.append('photo', selectedFile)
@@ -196,9 +194,9 @@ export default function ProviderProfile() {
       setProfilePhoto(res.data.profilePhoto)
       setSelectedFile(null)
       setPhotoPreview(null)
-      setMessage({ type: 'success', text: 'Profile photo updated!' })
+      toast.success('Profile photo updated!')
     } catch (err) {
-      setMessage({ type: 'error', text: err.response?.data?.error || 'Failed to upload photo.' })
+      toast.error(err.response?.data?.error || 'Failed to upload photo.')
     } finally {
       setUploading(false)
     }
@@ -212,10 +210,11 @@ export default function ProviderProfile() {
     setDeleteError('')
     try {
       await api.delete('/auth/me')
+      toast.success('Account deleted successfully')
       logout()
       navigate('/')
     } catch (err) {
-      setDeleteError(err.response?.data?.error || 'Failed to delete account')
+      toast.error(err.response?.data?.error || 'Failed to delete account')
       setDeleteLoading(false)
     }
   }
@@ -223,14 +222,13 @@ export default function ProviderProfile() {
   const handleAddService = async (e) => {
     e.preventDefault()
     setSubmittingService(true)
-    setMessage({ type: '', text: '' })
     try {
       const res = await api.post('/providers/services', newService)
-      setMessage({ type: 'success', text: res.data.message || 'Service submitted for admin review' })
+      toast.success(res.data.message || 'Service submitted for admin review')
       setNewService({ category: '', title: '', description: '', basePrice: '' })
       fetchServices()
     } catch (err) {
-      setMessage({ type: 'error', text: err.response?.data?.error || 'Failed to add service' })
+      toast.error(err.response?.data?.error || 'Failed to add service')
     } finally {
       setSubmittingService(false)
     }
@@ -239,14 +237,13 @@ export default function ProviderProfile() {
   const handleUpdateService = async (id, e) => {
     e.preventDefault()
     setSubmittingService(true)
-    setMessage({ type: '', text: '' })
     try {
       const res = await api.put(`/providers/services/${id}`, editForm)
-      setMessage({ type: 'success', text: res.data.message || 'Service updated' })
+      toast.success(res.data.message || 'Service updated')
       setEditingServiceId(null)
       fetchServices()
     } catch (err) {
-      setMessage({ type: 'error', text: err.response?.data?.error || 'Failed to update service' })
+      toast.error(err.response?.data?.error || 'Failed to update service')
     } finally {
       setSubmittingService(false)
     }
@@ -256,9 +253,10 @@ export default function ProviderProfile() {
     if (!window.confirm('Are you sure you want to delete this service?')) return
     try {
       await api.delete(`/providers/services/${id}`)
+      toast.success('Service deleted successfully')
       fetchServices()
     } catch (err) {
-      setMessage({ type: 'error', text: err.response?.data?.error || 'Failed to delete service' })
+      toast.error(err.response?.data?.error || 'Failed to delete service')
     }
   }
 
@@ -307,7 +305,7 @@ export default function ProviderProfile() {
 
         <div className="flex gap-2 mb-6 border-b border-gray-200">
           <button
-            onClick={() => { setActiveTab('profile'); setMessage({ type: '', text: '' }) }}
+            onClick={() => { setActiveTab('profile') }}
             className={`px-4 py-2 text-sm font-medium transition ${
               activeTab === 'profile'
                 ? 'border-b-2 border-primary text-primary'
@@ -317,7 +315,7 @@ export default function ProviderProfile() {
             {t('providerProfile.editProfile')}
           </button>
           <button
-            onClick={() => { setActiveTab('services'); setMessage({ type: '', text: '' }) }}
+            onClick={() => { setActiveTab('services') }}
             className={`px-4 py-2 text-sm font-medium transition ${
               activeTab === 'services'
                 ? 'border-b-2 border-primary text-primary'
@@ -327,12 +325,6 @@ export default function ProviderProfile() {
             {t('providerProfile.myServices')}
           </button>
         </div>
-
-        {message.text && (
-          <div className={`px-4 py-3 rounded mb-6 ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-            {message.text}
-          </div>
-        )}
 
         {activeTab === 'profile' && (
           <div className="grid md:grid-cols-3 gap-8">
