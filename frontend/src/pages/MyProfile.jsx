@@ -301,7 +301,7 @@ export default function MyProfile() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm bg-white"
                 >
                   <option value="">{t('myProfile.selectDistrict')}</option>
-                  {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                  {districts.map(d => <option key={d} value={d}>{t(`districts.${d}`, d)}</option>)}
                 </select>
               </div>
               
@@ -315,9 +315,9 @@ export default function MyProfile() {
                   disabled={!profileData.district}
                   className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm bg-white ${!profileData.district ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                 >
-                  <option value="">{profileData.district ? `${t('myProfile.allCitiesIn')} ${profileData.district}` : t('myProfile.selectDistrictFirst')}</option>
+                  <option value="">{profileData.district ? `${t('myProfile.allCitiesIn')} ${t(`districts.${profileData.district}`, profileData.district)}` : t('myProfile.selectDistrictFirst')}</option>
                   {profileData.district && sriLankaCities[profileData.district]?.map(c => (
-                    <option key={c} value={c}>{c}</option>
+                    <option key={c} value={c}>{t(`cities.${c.replace(/[^a-zA-Z0-9]/g, '')}`, c)}</option>
                   ))}
                 </select>
               </div>

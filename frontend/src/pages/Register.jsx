@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import sriLankaCities from '../data/sriLankaCities'
 import { useTranslation } from 'react-i18next'
+import Navbar from '../components/Navbar'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -14,9 +15,12 @@ const districts = [
 
 export default function Register() {
   const { t } = useTranslation()
+  const location = useLocation()
+  const initialRole = location.state?.role || 'CUSTOMER'
+
   const [formData, setFormData] = useState({
     name: '', email: '', password: '', confirmPassword: '',
-    phone: '', role: 'CUSTOMER', district: '', city: '', address: ''
+    phone: '', role: initialRole, district: '', city: '', address: ''
   })
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState('')
@@ -135,10 +139,18 @@ export default function Register() {
     }`
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-3xl font-bold text-primary mb-2">CeyLink 🇱🇰</h1>
-        <p className="text-gray-500 mb-6">{t('register.title')}</p>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 text-accent mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800">{t('register.title')}</h1>
+          </div>
 
         {serverError && (
           <div className="bg-red-50 text-red-600 px-4 py-2 rounded mb-4 text-sm">
@@ -276,7 +288,7 @@ export default function Register() {
             >
               <option value="">{formData.district ? `${t('register.allCitiesIn')} ${t(`districts.${formData.district}`, formData.district)}` : t('register.selectDistrictFirst')}</option>
               {formData.district && sriLankaCities[formData.district]?.map(c => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>{t(`cities.${c.replace(/[^a-zA-Z0-9]/g, '')}`, c)}</option>
               ))}
             </select>
           </div>
@@ -324,6 +336,7 @@ export default function Register() {
           {t('register.haveAccount')} {' '}
           <Link to="/login" className="text-accent font-semibold">{t('register.login')}</Link>
         </p>
+        </div>
       </div>
     </div>
   )

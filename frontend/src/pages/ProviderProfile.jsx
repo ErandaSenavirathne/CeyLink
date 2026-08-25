@@ -396,7 +396,7 @@ export default function ProviderProfile() {
                       rows="4"
                       value={formData.bio}
                       onChange={handleChange}
-                      placeholder="Tell customers about your experience and expertise..."
+                      placeholder={t('providerProfile.bioPlaceholder')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
                     />
                   </div>
@@ -410,8 +410,8 @@ export default function ProviderProfile() {
                         onChange={handleChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent bg-white"
                       >
-                        <option value="">Select District</option>
-                        {districts.map(d => <option key={d} value={d}>{d}</option>)}
+                        <option value="">{t('providerProfile.selectDistrict')}</option>
+                        {districts.map(d => <option key={d} value={d}>{t(`districts.${d}`, d)}</option>)}
                       </select>
                     </div>
 
@@ -426,9 +426,9 @@ export default function ProviderProfile() {
                         disabled={!formData.district}
                         className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent bg-white ${!formData.district ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                       >
-                        <option value="">{formData.district ? `All cities in ${formData.district}` : 'Select district first'}</option>
+                        <option value="">{formData.district ? `${t('providerProfile.allCitiesIn')} ${t(`districts.${formData.district}`, formData.district)}` : t('providerProfile.selectDistrictFirst')}</option>
                         {formData.district && sriLankaCities[formData.district]?.map(c => (
-                          <option key={c} value={c}>{c}</option>
+                          <option key={c} value={c}>{t(`cities.${c.replace(/[^a-zA-Z0-9]/g, '')}`, c)}</option>
                         ))}
                       </select>
                     </div>
@@ -483,7 +483,7 @@ export default function ProviderProfile() {
                         </span>
                       ))}
                       {formData.skills.length === 0 && (
-                        <span className="text-gray-400 text-sm">No skills added yet.</span>
+                        <span className="text-gray-400 text-sm">{t('providerProfile.noSkills')}</span>
                       )}
                     </div>
                   </div>
@@ -595,7 +595,7 @@ export default function ProviderProfile() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
                         >
                           <option value="">{t('providerProfile.selectCategory')}</option>
-                          {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                          {categories.map(c => <option key={c} value={c}>{t(`categories.${c}`, c)}</option>)}
                         </select>
                       </div>
                     </div>
@@ -663,7 +663,7 @@ export default function ProviderProfile() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
                     >
                       <option value="">{t('providerProfile.selectCategory')}</option>
-                      {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                      {categories.map(c => <option key={c} value={c}>{t(`categories.${c}`, c)}</option>)}
                     </select>
                   </div>
                 </div>

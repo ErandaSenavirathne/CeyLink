@@ -48,10 +48,10 @@ export default function Landing() {
                 <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
 
                     {/* Logo */}
-                    <div className="flex items-center gap-2">
+                    <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2 hover:opacity-80 transition cursor-pointer">
                         <span className="text-2xl font-bold text-primary">CeyLink</span>
                         <span className="text-xl">🇱🇰</span>
-                    </div>
+                    </button>
 
                     {/* Desktop nav */}
                     <div className="hidden md:flex items-center gap-4">
@@ -148,14 +148,14 @@ export default function Landing() {
                     <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
                         <Link
                             to="/register"
-                            className="bg-accent text-white px-8 py-3 rounded-xl font-bold text-base hover:bg-teal-500 transition shadow-lg"
+                            className="bg-accent text-white px-8 py-3 rounded-xl font-bold text-base hover:bg-teal-500 transition shadow-lg text-center flex-1 sm:flex-none flex items-center justify-center"
                         >
                             {t('landing.hero.findService')}
                         </Link>
                         <Link
                             to="/register"
                             state={{ role: 'PROVIDER' }}
-                            className="bg-white/10 backdrop-blur-sm text-white border border-white/30 px-8 py-3 rounded-xl font-bold text-base hover:bg-white/20 transition"
+                            className="bg-white/10 backdrop-blur-sm text-white border border-white/30 px-8 py-3 rounded-xl font-bold text-base hover:bg-white/20 transition text-center flex-1 sm:flex-none flex items-center justify-center"
                         >
                             {t('landing.hero.joinProvider')}
                         </Link>
@@ -212,20 +212,20 @@ export default function Landing() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {steps.map((step, index) => (
-                            <div key={step.title} className="text-center relative">
+                            <div key={step.title} className="text-center relative h-full flex flex-col">
                                 {/* Connector line between steps on desktop */}
                                 {index < steps.length - 1 && (
                                     <div className="hidden md:block absolute top-8 left-1/2 w-full h-0.5 bg-gray-100 z-0" />
                                 )}
-                                <div className="relative z-10">
-                                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+                                <div className="relative z-10 flex flex-col flex-1 items-center">
+                                    <div className="w-16 h-16 shrink-0 bg-primary/10 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
                                         {step.icon}
                                     </div>
-                                    <div className="bg-primary text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center mx-auto -mt-2 mb-3">
+                                    <div className="bg-primary text-white text-xs font-bold w-6 h-6 shrink-0 rounded-full flex items-center justify-center mx-auto -mt-2 mb-3">
                                         {index + 1}
                                     </div>
                                     <h3 className="font-bold text-gray-800 text-lg mb-2">{step.title}</h3>
-                                    <p className="text-gray-500 text-sm leading-relaxed">{step.desc}</p>
+                                    <p className="text-gray-500 text-sm leading-relaxed flex-1">{step.desc}</p>
                                 </div>
                             </div>
                         ))}
@@ -258,11 +258,11 @@ export default function Landing() {
                         {features.map(feature => (
                             <div
                                 key={feature.title}
-                                className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition border border-gray-100"
+                                className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition border border-gray-100 h-full flex flex-col"
                             >
-                                <div className="text-3xl mb-3">{feature.icon}</div>
-                                <h3 className="font-bold text-gray-800 mb-2">{feature.title}</h3>
-                                <p className="text-gray-500 text-sm leading-relaxed">{feature.desc}</p>
+                                <div className="text-3xl mb-3 shrink-0">{feature.icon}</div>
+                                <h3 className="font-bold text-gray-800 mb-2 shrink-0">{feature.title}</h3>
+                                <p className="text-gray-500 text-sm leading-relaxed flex-1">{feature.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -319,6 +319,7 @@ export default function Landing() {
                         <div className="flex-shrink-0">
                             <Link
                                 to="/register"
+                                state={{ role: 'PROVIDER' }}
                                 className="bg-white text-accent font-bold px-8 py-4 rounded-xl hover:bg-gray-50 transition shadow-lg inline-block text-center"
                             >
                                 {t('landing.providerCta.btn')}
@@ -361,13 +362,13 @@ export default function Landing() {
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <Link
                             to="/register"
-                            className="bg-primary text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-900 transition"
+                            className="bg-primary text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-900 transition text-center flex-1 sm:flex-none flex items-center justify-center"
                         >
                             {t('landing.finalCta.create')}
                         </Link>
                         <Link
                             to="/login"
-                            className="bg-gray-100 text-gray-700 px-8 py-3 rounded-xl font-semibold hover:bg-gray-200 transition"
+                            className="bg-gray-100 text-gray-700 px-8 py-3 rounded-xl font-semibold hover:bg-gray-200 transition text-center flex-1 sm:flex-none flex items-center justify-center"
                         >
                             {t('landing.finalCta.login')}
                         </Link>
@@ -379,13 +380,13 @@ export default function Landing() {
             <footer className="bg-gray-900 text-gray-400 py-8">
                 <div className="max-w-6xl mx-auto px-4">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div className="flex items-center gap-2">
+                        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2 hover:text-white transition cursor-pointer text-left">
                             <span className="text-white font-bold text-lg">CeyLink</span>
                             <span>🇱🇰</span>
                             <span className="text-gray-600 text-sm ml-2">
                                 {t('landing.footer.desc')}
                             </span>
-                        </div>
+                        </button>
 
                         <div className="flex items-center gap-6 text-sm">
                             <Link to="/login" className="hover:text-white transition">

@@ -20,7 +20,7 @@ export default function Navbar() {
 
   return (
     <nav className="bg-primary text-white px-6 py-4 flex justify-between items-center shadow-md">
-      <Link to="/browse" className="text-xl font-bold">CeyLink 🇱🇰</Link>
+      <Link to={user ? "/browse" : "/"} className="text-xl font-bold">CeyLink 🇱🇰</Link>
 
       <div className="flex items-center gap-4">
         {user?.role === 'CUSTOMER' && (
@@ -53,23 +53,27 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
-          {user?.profilePhoto ? (
-            <img src={user.profilePhoto} alt={user.name} className="w-8 h-8 rounded-full object-cover border border-white/20" />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-              <span className="text-white text-sm">👤</span>
+        {user && (
+          <>
+            <div className="flex items-center gap-2">
+              {user.profilePhoto ? (
+                <img src={user.profilePhoto} alt={user.name} className="w-8 h-8 rounded-full object-cover border border-white/20" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                  <span className="text-white text-sm">👤</span>
+                </div>
+              )}
+              <span className="text-sm text-gray-200">{t('nav.greeting')}, {user.name}</span>
             </div>
-          )}
-          <span className="text-sm text-gray-200">{t('nav.greeting')}, {user?.name}</span>
-        </div>
 
-        <button
-          onClick={handleLogout}
-          className="bg-accent text-white px-4 py-1.5 rounded-md text-sm font-semibold hover:bg-teal-600 transition"
-        >
-          {t('nav.logout')}
-        </button>
+            <button
+              onClick={handleLogout}
+              className="bg-accent text-white px-4 py-1.5 rounded-md text-sm font-semibold hover:bg-teal-600 transition"
+            >
+              {t('nav.logout')}
+            </button>
+          </>
+        )}
       </div>
     </nav>
   )

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import Navbar from '../components/Navbar'
 
 export default function Login() {
   const { t } = useTranslation()
@@ -34,10 +35,18 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-3xl font-bold text-primary mb-2">CeyLink 🇱🇰</h1>
-        <p className="text-gray-500 mb-6">{t('login.title')}</p>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 text-accent mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800">{t('login.title')}</h1>
+          </div>
 
         {error && (
           <div className="bg-red-50 text-red-600 px-4 py-2 rounded mb-4 text-sm">
@@ -88,6 +97,7 @@ export default function Login() {
           <Link to="/admin/login" className="text-xs text-primary hover:text-blue-900 font-semibold transition">
             Are you an administrator? Admin Login
           </Link>
+        </div>
         </div>
       </div>
     </div>
