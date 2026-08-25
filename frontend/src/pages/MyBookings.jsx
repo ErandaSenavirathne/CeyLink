@@ -45,7 +45,7 @@ export default function MyBookings() {
   }
 
   const handleCancel = async (bookingId) => {
-    if (!confirm('Are you sure you want to cancel this booking?')) return
+    if (!confirm(t('myBookings.confirmCancel') || 'Are you sure you want to cancel this booking?')) return
     try {
       await api.patch(`/bookings/${bookingId}/cancel`)
       fetchBookings()
@@ -67,7 +67,7 @@ export default function MyBookings() {
         reviewText: data.text
       })
       fetchBookings()
-      alert('Review submitted successfully')
+      alert(t('myBookings.reviewSuccess') || 'Review submitted successfully')
     } catch (err) {
       setReviewData(prev => ({
         ...prev,
@@ -114,13 +114,13 @@ export default function MyBookings() {
               <ContactButtons
                 name={booking.provider.user.name}
                 phone={booking.provider.user.phone}
-                label="Contact Provider"
+                label={t('myBookings.contactProvider')}
               />
 
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <h3 className="font-semibold text-gray-800">{booking.service.title}</h3>
-                  <p className="text-sm text-gray-500">with {booking.provider.user.name}</p>
+                  <p className="text-sm text-gray-500">{t('bookingForm.with')} {booking.provider.user.name}</p>
                 </div>
                 <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusStyles[booking.status]}`}>
                   {t(`status.${booking.status}`)}
@@ -131,7 +131,7 @@ export default function MyBookings() {
                 <p>📅 {new Date(booking.bookingDate).toLocaleDateString()}</p>
                 <p>🕐 {booking.timeSlot}</p>
                 <p>💰 Rs. {booking.totalAmount} ({booking.paymentMode})</p>
-                {booking.isUrgent && <p className="text-red-600 font-medium">⚡ Urgent</p>}
+                {booking.isUrgent && <p className="text-red-600 font-medium">⚡ {t('bookingForm.urgent')}</p>}
               </div>
 
               {booking.notes && (
@@ -157,7 +157,7 @@ export default function MyBookings() {
 
                 {booking.status === 'COMPLETED' && !booking.review && reviewData[booking.id] && (
                   <div className="mt-2 bg-amber-50 border border-amber-100 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-800 mb-3">⭐ Rate your experience</p>
+                    <p className="text-sm font-semibold text-gray-800 mb-3">⭐ {t('myBookings.rateExp')}</p>
                     <div className="space-y-3">
                       <StarRatingInput
                         value={reviewData[booking.id].rating}
@@ -166,7 +166,7 @@ export default function MyBookings() {
                       />
                       <textarea
                         rows="2"
-                        placeholder="Share your experience..."
+                        placeholder={t('myBookings.shareExp')}
                         value={reviewData[booking.id].text}
                         onChange={(e) => setReviewData(prev => ({ ...prev, [booking.id]: { ...prev[booking.id], text: e.target.value } }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm bg-white"
@@ -177,7 +177,7 @@ export default function MyBookings() {
                         disabled={reviewData[booking.id].rating === 0 || reviewData[booking.id].submitting}
                         className="bg-accent text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-teal-600 transition disabled:opacity-50"
                       >
-                        {reviewData[booking.id].submitting ? 'Submitting...' : 'Submit Review'}
+                        {reviewData[booking.id].submitting ? t('myBookings.submitting') : t('myBookings.submitReview')}
                       </button>
                     </div>
                   </div>

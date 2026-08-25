@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import sriLankaCities from '../data/sriLankaCities'
+import { useTranslation } from 'react-i18next'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -12,6 +13,7 @@ const districts = [
 ]
 
 export default function Register() {
+  const { t } = useTranslation()
   const [formData, setFormData] = useState({
     name: '', email: '', password: '', confirmPassword: '',
     phone: '', role: 'CUSTOMER', district: '', city: '', address: ''
@@ -41,47 +43,47 @@ export default function Register() {
     const newErrors = {}
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Full name is required'
+      newErrors.name = t('register.errors.nameRequired')
     } else if (formData.name.trim().length < 2) {
-      newErrors.name = 'Name must be at least 2 characters'
+      newErrors.name = t('register.errors.nameMin')
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required'
+      newErrors.email = t('register.errors.emailRequired')
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address'
+      newErrors.email = t('register.errors.emailInvalid')
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required'
+      newErrors.password = t('register.errors.passwordRequired')
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters'
+      newErrors.password = t('register.errors.passwordMin')
     } else if (!/[A-Z]/.test(formData.password)) {
-      newErrors.password = 'Password must contain at least one uppercase letter'
+      newErrors.password = t('register.errors.passwordUpper')
     } else if (!/[0-9]/.test(formData.password)) {
-      newErrors.password = 'Password must contain at least one number'
+      newErrors.password = t('register.errors.passwordNum')
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password'
+      newErrors.confirmPassword = t('register.errors.confirmRequired')
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match'
+      newErrors.confirmPassword = t('register.errors.passwordMismatch')
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required'
+      newErrors.phone = t('register.errors.phoneRequired')
     } else if (!/^(\+94|0)[0-9]{9}$/.test(formData.phone.trim())) {
-      newErrors.phone = 'Enter a valid Sri Lankan number (e.g. 0771234567)'
+      newErrors.phone = t('register.errors.phoneInvalid')
     }
 
     if (!formData.district) {
-      newErrors.district = 'Please select your district'
+      newErrors.district = t('register.errors.districtRequired')
     }
 
     if (formData.role === 'CUSTOMER' && !formData.address.trim()) {
-      newErrors.address = 'Address is required'
+      newErrors.address = t('register.errors.addressRequired')
     } else if (formData.role === 'CUSTOMER' && formData.address.trim().length < 5) {
-      newErrors.address = 'Please enter a complete address'
+      newErrors.address = t('register.errors.addressMin')
     }
 
     return newErrors
@@ -136,7 +138,7 @@ export default function Register() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-3xl font-bold text-primary mb-2">CeyLink 🇱🇰</h1>
-        <p className="text-gray-500 mb-6">Create your account</p>
+        <p className="text-gray-500 mb-6">{t('register.title')}</p>
 
         {serverError && (
           <div className="bg-red-50 text-red-600 px-4 py-2 rounded mb-4 text-sm">
@@ -148,7 +150,7 @@ export default function Register() {
 
           {/* Role selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">I am a...</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('register.iAmA')}</label>
             <div className="flex gap-3">
               <button
                 type="button"
@@ -158,7 +160,7 @@ export default function Register() {
                   : 'border-gray-300 text-gray-500'
                   }`}
               >
-                Customer
+                {t('register.customer')}
               </button>
               <button
                 type="button"
@@ -168,7 +170,7 @@ export default function Register() {
                   : 'border-gray-300 text-gray-500'
                   }`}
               >
-                Service Provider
+                {t('register.provider')}
               </button>
             </div>
           </div>
@@ -176,13 +178,13 @@ export default function Register() {
           {/* Full Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name <span className="text-red-500">*</span>
+              {t('register.fullName')} <span className="text-red-500">*</span>
             </label>
             <input
               name="name" type="text"
               value={formData.name} onChange={handleChange}
               className={inputClass('name')}
-              placeholder="Kasun Perera"
+              placeholder={t('register.namePlaceholder')}
             />
             <FieldError field="name" />
           </div>
@@ -190,13 +192,13 @@ export default function Register() {
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email <span className="text-red-500">*</span>
+              {t('register.email')} <span className="text-red-500">*</span>
             </label>
             <input
               name="email" type="email"
               value={formData.email} onChange={handleChange}
               className={inputClass('email')}
-              placeholder="kasun@example.com"
+              placeholder={t('register.emailPlaceholder')}
             />
             <FieldError field="email" />
           </div>
@@ -204,13 +206,13 @@ export default function Register() {
           {/* Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password <span className="text-red-500">*</span>
+              {t('register.password')} <span className="text-red-500">*</span>
             </label>
             <input
               name="password" type="password"
               value={formData.password} onChange={handleChange}
               className={inputClass('password')}
-              placeholder="Min 6 chars, 1 uppercase, 1 number"
+              placeholder={t('register.passwordPlaceholder')}
             />
             <FieldError field="password" />
           </div>
@@ -218,13 +220,13 @@ export default function Register() {
           {/* Confirm Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm Password <span className="text-red-500">*</span>
+              {t('register.confirmPassword')} <span className="text-red-500">*</span>
             </label>
             <input
               name="confirmPassword" type="password"
               value={formData.confirmPassword} onChange={handleChange}
               className={inputClass('confirmPassword')}
-              placeholder="Repeat your password"
+              placeholder={t('register.confirmPlaceholder')}
             />
             <FieldError field="confirmPassword" />
           </div>
@@ -232,13 +234,13 @@ export default function Register() {
           {/* Phone */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number <span className="text-red-500">*</span>
+              {t('register.phone')} <span className="text-red-500">*</span>
             </label>
             <input
               name="phone" type="tel"
               value={formData.phone} onChange={handleChange}
               className={inputClass('phone')}
-              placeholder="0771234567"
+              placeholder={t('register.phonePlaceholder')}
             />
             <FieldError field="phone" />
           </div>
@@ -246,16 +248,16 @@ export default function Register() {
           {/* District */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              District <span className="text-red-500">*</span>
+              {t('register.district')} <span className="text-red-500">*</span>
             </label>
             <select
               name="district"
               value={formData.district} onChange={handleChange}
               className={inputClass('district')}
             >
-              <option value="">Select your district</option>
+              <option value="">{t('register.selectDistrict')}</option>
               {districts.map(d => (
-                <option key={d} value={d}>{d}</option>
+                <option key={d} value={d}>{t(`districts.${d}`, d)}</option>
               ))}
             </select>
             <FieldError field="district" />
@@ -264,7 +266,7 @@ export default function Register() {
           {/* City */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              City/Town <span className="text-gray-400 font-normal">(Optional)</span>
+              {t('register.city')} <span className="text-gray-400 font-normal">{t('register.optional')}</span>
             </label>
             <select
               name="city"
@@ -272,7 +274,7 @@ export default function Register() {
               disabled={!formData.district}
               className={`${inputClass('city')} ${!formData.district ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             >
-              <option value="">{formData.district ? `All cities in ${formData.district}` : 'Select a district first'}</option>
+              <option value="">{formData.district ? `${t('register.allCitiesIn')} ${t(`districts.${formData.district}`, formData.district)}` : t('register.selectDistrictFirst')}</option>
               {formData.district && sriLankaCities[formData.district]?.map(c => (
                 <option key={c} value={c}>{c}</option>
               ))}
@@ -283,13 +285,13 @@ export default function Register() {
           {formData.role === 'CUSTOMER' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Address <span className="text-red-500">*</span>
+                {t('register.address')} <span className="text-red-500">*</span>
               </label>
               <textarea
                 name="address" rows={2}
                 value={formData.address} onChange={handleChange}
                 className={inputClass('address')}
-                placeholder="No. 42, Galle Road, Colombo 03"
+                placeholder={t('register.addressPlaceholder')}
               />
               <FieldError field="address" />
             </div>
@@ -297,15 +299,15 @@ export default function Register() {
 
           {/* Password requirements hint */}
           <div className="bg-gray-50 rounded-md p-3 text-xs text-gray-500">
-            <p className="font-medium mb-1">Password must have:</p>
+            <p className="font-medium mb-1">{t('register.passwordReqs.title')}</p>
             <p className={formData.password.length >= 6 ? 'text-green-600' : ''}>
-              {formData.password.length >= 6 ? '✓' : '○'} At least 6 characters
+              {formData.password.length >= 6 ? '✓' : '○'} {t('register.passwordReqs.length')}
             </p>
             <p className={/[A-Z]/.test(formData.password) ? 'text-green-600' : ''}>
-              {/[A-Z]/.test(formData.password) ? '✓' : '○'} At least one uppercase letter
+              {/[A-Z]/.test(formData.password) ? '✓' : '○'} {t('register.passwordReqs.upper')}
             </p>
             <p className={/[0-9]/.test(formData.password) ? 'text-green-600' : ''}>
-              {/[0-9]/.test(formData.password) ? '✓' : '○'} At least one number
+              {/[0-9]/.test(formData.password) ? '✓' : '○'} {t('register.passwordReqs.number')}
             </p>
           </div>
 
@@ -314,13 +316,13 @@ export default function Register() {
             disabled={loading}
             className="w-full bg-primary text-white py-2 rounded-md font-semibold hover:bg-blue-900 transition disabled:opacity-50"
           >
-            {loading ? 'Creating account...' : 'Create Account'}
+            {loading ? t('register.loading') : t('register.submit')}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Already have an account?{' '}
-          <Link to="/login" className="text-accent font-semibold">Login</Link>
+          {t('register.haveAccount')} {' '}
+          <Link to="/login" className="text-accent font-semibold">{t('register.login')}</Link>
         </p>
       </div>
     </div>

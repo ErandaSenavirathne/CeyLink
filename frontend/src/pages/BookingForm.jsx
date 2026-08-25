@@ -222,22 +222,31 @@ export default function BookingForm() {
               name="notes" rows={3}
               value={formData.notes} onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
-              placeholder="E.g. Kitchen sink is leaking..."
+              placeholder={t('bookingForm.placeholderNotes')}
             />
           </div>
 
           {/* Photo upload field */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{t('bookingForm.addPhoto')}</label>
-            <p className="text-xs text-gray-400 mb-2">Helps the provider understand the issue. JPEG, PNG, or WebP, max 5MB.</p>
+            <p className="text-xs text-gray-400 mb-2">{t('bookingForm.photoHelper')}</p>
 
             {!photoPreview && (
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={handlePhotoChange}
-                className="w-full text-sm text-gray-600 border border-gray-300 rounded-md px-3 py-2 cursor-pointer"
-              />
+              <div>
+                <input
+                  type="file"
+                  id="bookingPhotoUpload"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="bookingPhotoUpload"
+                  className="block w-full text-center text-sm text-gray-600 border border-gray-300 rounded-md px-3 py-2 cursor-pointer hover:bg-gray-50 transition"
+                >
+                  {t('bookingForm.chooseFile')}
+                </label>
+              </div>
             )}
 
             {photoPreview && (

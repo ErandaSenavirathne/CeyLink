@@ -114,18 +114,18 @@ export default function ProviderDashboard() {
           <div className="bg-red-50 border border-red-200 rounded-lg p-5 mb-6 flex gap-4 items-start shadow-sm">
             <span className="text-2xl mt-1">🛑</span>
             <div className="flex-1">
-              <h3 className="text-red-800 font-bold mb-1">Your provider account has been revoked</h3>
+              <h3 className="text-red-800 font-bold mb-1">{t('dashboard.revokedTitle')}</h3>
               <p className="text-red-700 text-sm mb-3">
-                An administrator has revoked your ability to accept new bookings on CeyLink. Your services are currently hidden from customers.
+                {t('dashboard.revokedDesc')}
               </p>
               {providerProfile.rejectionReason && (
                 <div className="bg-white rounded-md p-3 text-red-800 text-sm border border-red-200">
-                  <span className="font-semibold block text-red-900 mb-1">Reason provided by admin:</span>
+                  <span className="font-semibold block text-red-900 mb-1">{t('dashboard.adminReason')}</span>
                   {providerProfile.rejectionReason}
                 </div>
               )}
               <p className="text-xs text-red-600 mt-3">
-                You can update your profile or services based on this feedback, and an admin may re-verify your account.
+                {t('dashboard.revokedHelp')}
               </p>
             </div>
           </div>
@@ -134,12 +134,12 @@ export default function ProviderDashboard() {
         {/* Show this banner when provider has no approved services */}
         {!loading && myServices.filter(s => s.status === 'APPROVED').length === 0 && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6">
-            <h3 className="font-semibold text-blue-800 mb-3">👋 Welcome to CeyLink! Complete your setup</h3>
+            <h3 className="font-semibold text-blue-800 mb-3">👋 {t('dashboard.welcomeSetup')}</h3>
             <div className="space-y-2 text-sm">
-              <p className="text-green-600">✓ Account created successfully</p>
-              <p className="text-gray-600">○ <a href="/provider-profile" className="text-blue-600 underline">Add your profile info</a> (bio, photo, skills)</p>
-              <p className="text-gray-600">○ <a href="/provider-profile" className="text-blue-600 underline">Add at least one service</a> for admin review</p>
-              <p className="text-gray-600">○ Wait for admin verification to go live</p>
+              <p className="text-green-600">✓ {t('dashboard.setupStep1')}</p>
+              <p className="text-gray-600">○ <a href="/provider-profile" className="text-blue-600 underline">{t('dashboard.setupStep2Link')}</a> {t('dashboard.setupStep2Text')}</p>
+              <p className="text-gray-600">○ <a href="/provider-profile" className="text-blue-600 underline">{t('dashboard.setupStep3Link')}</a> {t('dashboard.setupStep3Text')}</p>
+              <p className="text-gray-600">○ {t('dashboard.setupStep4')}</p>
             </div>
           </div>
         )}
@@ -213,7 +213,7 @@ export default function ProviderDashboard() {
                   {/* Active job indicator */}
                   {booking.status === 'IN_PROGRESS' && (
                     <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium animate-pulse">
-                      🔧 Active Job
+                      🔧 {t('dashboard.activeJob')}
                     </span>
                   )}
                 </div>
@@ -223,7 +223,7 @@ export default function ProviderDashboard() {
                 <p>📅 {new Date(booking.bookingDate).toLocaleDateString()}</p>
                 <p>🕐 {booking.timeSlot}</p>
                 <p>💰 Rs. {booking.totalAmount} ({booking.paymentMode})</p>
-                {booking.isUrgent && <p className="text-red-600 font-medium">⚡ Urgent</p>}
+                {booking.isUrgent && <p className="text-red-600 font-medium">⚡ {t('bookingForm.urgent')}</p>}
               </div>
 
               {booking.customer.address && (
@@ -262,7 +262,7 @@ export default function ProviderDashboard() {
                         {/* Warning message shown only when Start Job is blocked */}
                         {isBlocked && (
                           <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-                            ⚠️ Complete your active job before starting this one
+                            ⚠️ {t('dashboard.activeWarning')}
                           </p>
                         )}
                       </div>

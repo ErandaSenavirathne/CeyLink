@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import sriLankaCities from '../data/sriLankaCities'
+import { useTranslation } from 'react-i18next'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -19,6 +20,7 @@ const categories = [
 ]
 
 export default function ProviderProfile() {
+  const { t } = useTranslation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -278,8 +280,8 @@ export default function ProviderProfile() {
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-primary mb-2">My Profile</h1>
-        <p className="text-gray-500 mb-8">Manage your public provider information and services.</p>
+        <h1 className="text-3xl font-bold text-primary mb-2">{t('providerProfile.title')}</h1>
+        <p className="text-gray-500 mb-8">{t('providerProfile.subtitle')}</p>
 
         {/* Revocation Alert */}
         {providerStatus.verificationStatus === 'REJECTED' && (
@@ -312,7 +314,7 @@ export default function ProviderProfile() {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Edit Profile
+            {t('providerProfile.editProfile')}
           </button>
           <button
             onClick={() => { setActiveTab('services'); setMessage({ type: '', text: '' }) }}
@@ -322,7 +324,7 @@ export default function ProviderProfile() {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            My Services
+            {t('providerProfile.myServices')}
           </button>
         </div>
 
@@ -337,7 +339,7 @@ export default function ProviderProfile() {
             {/* Section B - Profile Photo */}
             <div className="md:col-span-1">
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">Profile Photo</h2>
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">{t('providerProfile.profilePhoto')}</h2>
                 
                 <div className="flex flex-col items-center">
                   <div className="w-40 h-40 rounded-full overflow-hidden bg-gray-200 mb-4 flex items-center justify-center border-4 border-gray-100">
@@ -364,7 +366,7 @@ export default function ProviderProfile() {
                     htmlFor="photo-upload" 
                     className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium transition w-full text-center mb-3"
                   >
-                    Select Image
+                    {t('providerProfile.selectImage')}
                   </label>
 
                   {selectedFile && (
@@ -383,12 +385,12 @@ export default function ProviderProfile() {
             {/* Section A - Profile Info */}
             <div className="md:col-span-2">
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-800 mb-6">Profile Information</h2>
+                <h2 className="text-xl font-semibold text-gray-800 mb-6">{t('providerProfile.profileInfo')}</h2>
                 
                 <form onSubmit={handleSaveProfile} className="space-y-5">
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerProfile.bio')}</label>
                     <textarea
                       name="bio"
                       rows="4"
@@ -401,7 +403,7 @@ export default function ProviderProfile() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerProfile.district')}</label>
                       <select
                         name="district"
                         value={formData.district}
@@ -415,7 +417,7 @@ export default function ProviderProfile() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        City/Town <span className="text-gray-400 font-normal">(Optional)</span>
+                        {t('providerProfile.cityTown')} <span className="text-gray-400 font-normal">({t('providerProfile.optional')})</span>
                       </label>
                       <select
                         name="city"
@@ -433,7 +435,7 @@ export default function ProviderProfile() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">NIC Number</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerProfile.nicNumber')}</label>
                     <input
                       name="nicNumber"
                       type="text"
@@ -444,11 +446,11 @@ export default function ProviderProfile() {
                       placeholder="Enter your National Identity Card number"
                     />
                     {nicError && <p className="text-red-500 text-sm mt-1">{nicError}</p>}
-                    <p className="text-gray-500 text-xs mt-1">Format: 123456789V or 200012345678 (optional)</p>
+                    <p className="text-gray-500 text-xs mt-1">{t('providerProfile.nicFormat')}</p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerProfile.skills')}</label>
                     <div className="flex gap-2 mb-2">
                       <input
                         type="text"
@@ -456,14 +458,14 @@ export default function ProviderProfile() {
                         onChange={(e) => setSkillInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleAddSkill(e)}
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
-                        placeholder="e.g. Plumbing, Wiring, Painting"
+                        placeholder={t('providerProfile.skillsPlaceholder')}
                       />
                       <button
                         type="button"
                         onClick={handleAddSkill}
                         className="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-900 transition"
                       >
-                        Add
+                        {t('providerProfile.addSkill')}
                       </button>
                     </div>
                     
@@ -492,7 +494,7 @@ export default function ProviderProfile() {
                       disabled={saving || !!nicError}
                       className="w-full bg-primary text-white py-2.5 rounded-md font-semibold hover:bg-blue-900 transition disabled:opacity-50 text-lg"
                     >
-                      {saving ? 'Saving Profile...' : 'Save Profile'}
+                      {saving ? t('providerProfile.savingProfile') : t('providerProfile.saveProfile')}
                     </button>
                   </div>
 
@@ -501,15 +503,15 @@ export default function ProviderProfile() {
 
               {/* Danger Zone */}
               <div className="bg-red-50 rounded-xl border border-red-100 p-6 mt-6">
-                <h2 className="text-lg font-semibold text-red-800 mb-2">Danger Zone</h2>
+                <h2 className="text-lg font-semibold text-red-800 mb-2">{t('providerProfile.dangerZone')}</h2>
                 <p className="text-red-600 text-sm mb-4">
-                  Deleting your account is permanent. It will anonymize your profile, hide you from search results, and you will lose access to CeyLink immediately.
+                  {t('providerProfile.deleteWarning')}
                 </p>
                 <button
                   onClick={() => setShowDeleteModal(true)}
                   className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-red-700 transition"
                 >
-                  Delete Account
+                  {t('providerProfile.deleteAccount')}
                 </button>
               </div>
             </div>
@@ -520,7 +522,7 @@ export default function ProviderProfile() {
           <div className="space-y-6">
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <p className="text-gray-600 font-medium">
-                {approvedCount} Approved &middot; {pendingCount} Pending &middot; {rejectedCount} Rejected
+                {approvedCount} {t('providerProfile.approved')} &middot; {pendingCount} {t('providerProfile.pending')} &middot; {rejectedCount} {t('providerProfile.rejected')}
               </p>
             </div>
 
@@ -534,9 +536,9 @@ export default function ProviderProfile() {
                     </span>
                   </div>
                   <div>
-                    {service.status === 'APPROVED' && <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-medium">&check; Live</span>}
-                    {service.status === 'PENDING' && <span className="bg-yellow-100 text-yellow-700 text-xs px-3 py-1 rounded-full font-medium">&uarr; Under Review</span>}
-                    {service.status === 'REJECTED' && <span className="bg-red-100 text-red-700 text-xs px-3 py-1 rounded-full font-medium">&cross; Rejected</span>}
+                    {service.status === 'APPROVED' && <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-medium">&check; {t('providerProfile.live')}</span>}
+                    {service.status === 'PENDING' && <span className="bg-yellow-100 text-yellow-700 text-xs px-3 py-1 rounded-full font-medium">&uarr; {t('providerProfile.underReview')}</span>}
+                    {service.status === 'REJECTED' && <span className="bg-red-100 text-red-700 text-xs px-3 py-1 rounded-full font-medium">&cross; {t('providerProfile.rejected')}</span>}
                   </div>
                 </div>
 
@@ -562,13 +564,13 @@ export default function ProviderProfile() {
                     }}
                     className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                   >
-                    Edit
+                    {t('providerProfile.edit')}
                   </button>
                   <button
                     onClick={() => handleDeleteService(service.id)}
                     className="text-red-600 hover:text-red-800 text-sm font-medium"
                   >
-                    Delete
+                    {t('providerProfile.delete')}
                   </button>
                 </div>
 
@@ -576,7 +578,7 @@ export default function ProviderProfile() {
                   <form onSubmit={(e) => handleUpdateService(service.id, e)} className="mt-4 pt-4 border-t border-gray-100 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerProfile.serviceTitle')}</label>
                         <input
                           required
                           value={editForm.title}
@@ -585,20 +587,20 @@ export default function ProviderProfile() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerProfile.serviceCategory')}</label>
                         <select
                           required
                           value={editForm.category}
                           onChange={e => setEditForm({ ...editForm, category: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
                         >
-                          <option value="">Select Category</option>
+                          <option value="">{t('providerProfile.selectCategory')}</option>
                           {categories.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerProfile.serviceDescription')}</label>
                       <textarea
                         value={editForm.description}
                         onChange={e => setEditForm({ ...editForm, description: e.target.value })}
@@ -607,7 +609,7 @@ export default function ProviderProfile() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Base Price (LKR)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerProfile.serviceBasePrice')}</label>
                       <input
                         required
                         type="number"
@@ -623,14 +625,14 @@ export default function ProviderProfile() {
                         disabled={submittingService}
                         className="bg-primary text-white px-4 py-2 rounded-md font-medium hover:bg-blue-900 transition disabled:opacity-50"
                       >
-                        {submittingService ? 'Saving...' : 'Save Changes'}
+                        {submittingService ? t('providerProfile.saving') : t('providerProfile.saveChanges')}
                       </button>
                       <button
                         type="button"
                         onClick={() => setEditingServiceId(null)}
                         className="bg-gray-100 text-gray-600 px-4 py-2 rounded-md font-medium hover:bg-gray-200 transition"
                       >
-                        Cancel
+                        {t('providerProfile.cancel')}
                       </button>
                     </div>
                   </form>
@@ -639,44 +641,44 @@ export default function ProviderProfile() {
             ))}
 
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mt-8">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Add New Service</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">{t('providerProfile.addNewService')}</h3>
               <form onSubmit={handleAddService} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerProfile.titleRequired')}</label>
                     <input
                       required
                       value={newService.title}
                       onChange={e => setNewService({ ...newService, title: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
-                      placeholder="e.g. Basic Plumbing Repair"
+                      placeholder={t('providerProfile.titlePlaceholder')}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerProfile.categoryRequired')}</label>
                     <select
                       required
                       value={newService.category}
                       onChange={e => setNewService({ ...newService, category: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
                     >
-                      <option value="">Select Category</option>
+                      <option value="">{t('providerProfile.selectCategory')}</option>
                       {categories.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerProfile.serviceDescription')}</label>
                   <textarea
                     value={newService.description}
                     onChange={e => setNewService({ ...newService, description: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
-                    placeholder="Describe what's included..."
+                    placeholder={t('providerProfile.descPlaceholder')}
                     rows="3"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Base Price (LKR) *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerProfile.basePriceRequired')}</label>
                   <input
                     required
                     type="number"
@@ -684,7 +686,7 @@ export default function ProviderProfile() {
                     value={newService.basePrice}
                     onChange={e => setNewService({ ...newService, basePrice: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
-                    placeholder="e.g. 2000"
+                    placeholder={t('providerProfile.pricePlaceholder')}
                   />
                 </div>
                 <button
@@ -692,7 +694,7 @@ export default function ProviderProfile() {
                   disabled={submittingService}
                   className="bg-accent text-white px-6 py-2 rounded-md font-semibold hover:bg-teal-600 transition disabled:opacity-50"
                 >
-                  {submittingService ? 'Submitting...' : 'Submit for Review'}
+                  {submittingService ? t('providerProfile.submitting') : t('providerProfile.submitReview')}
                 </button>
               </form>
             </div>
@@ -704,9 +706,9 @@ export default function ProviderProfile() {
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Delete Account</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">{t('providerProfile.deleteAccount')}</h2>
             <p className="text-gray-600 text-sm mb-4">
-              This action cannot be undone. To confirm, please type <strong>DELETE</strong> below.
+              {t('providerProfile.deleteModalText')}
             </p>
             
             {deleteError && (
@@ -731,14 +733,14 @@ export default function ProviderProfile() {
                   onClick={() => setShowDeleteModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
                 >
-                  Cancel
+                  {t('providerProfile.cancel')}
                 </button>
                 <button 
                   type="submit" 
                   disabled={deleteConfirmation !== 'DELETE' || deleteLoading}
                   className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50"
                 >
-                  {deleteLoading ? 'Deleting...' : 'Permanently Delete'}
+                  {deleteLoading ? t('providerProfile.deleting') : t('providerProfile.permanentlyDelete')}
                 </button>
               </div>
             </form>

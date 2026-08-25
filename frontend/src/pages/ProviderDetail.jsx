@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar'
 import ContactButtons from '../components/ContactButtons'
 import { useAuth } from '../context/AuthContext'
 import StarRatingInput from '../components/StarRatingInput'
+import { useTranslation } from 'react-i18next'
 
 // Star display component
 function Stars({ rating, size = 'sm' }) {
@@ -40,6 +41,7 @@ function ProfilePhoto({ photo, name, size = 'lg' }) {
 }
 
 export default function ProviderDetail() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -191,7 +193,7 @@ export default function ProviderDetail() {
           onClick={() => navigate(-1)}
           className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 transition"
         >
-          ← Back to results
+          ← {t('providerDetail.back')}
         </button>
       </div>
 
@@ -214,11 +216,11 @@ export default function ProviderDetail() {
               {/* Availability badge */}
               {provider.isBusy ? (
                 <span className="bg-orange-100 text-orange-600 text-xs px-3 py-1 rounded-full font-medium">
-                  🔧 Currently Busy
+                  🔧 {t('providerDetail.busy')}
                 </span>
               ) : (
                 <span className="bg-emerald-100 text-emerald-700 text-xs px-3 py-1 rounded-full font-medium">
-                  🟢 Available
+                  🟢 {t('providerDetail.available')}
                 </span>
               )}
             </div>
@@ -230,13 +232,13 @@ export default function ProviderDetail() {
               </h1>
               {provider.nicVerified && (
                 <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium">
-                  ✓ NIC Verified
+                  ✓ {t('providerDetail.nicVerified')}
                 </span>
               )}
             </div>
 
             <p className="text-gray-500 text-sm mb-3">
-              📍 {provider.district} District
+              📍 {t(`districts.${provider.district}`)} {t('providerDetail.districtLabel')}
             </p>
 
             {/* Stats row */}
@@ -248,7 +250,7 @@ export default function ProviderDetail() {
                     {provider.avgRating}
                   </span>
                   <span className="text-gray-400 text-sm">
-                    ({provider.reviewCount} reviews)
+                    ({provider.reviewCount} {t('providerDetail.reviews')})
                   </span>
                 </div>
               )}
@@ -256,13 +258,13 @@ export default function ProviderDetail() {
               {provider.completedJobs > 0 && (
                 <div className="flex items-center gap-1 text-sm text-gray-500">
                   <span>✅</span>
-                  <span>{provider.completedJobs} jobs completed</span>
+                  <span>{provider.completedJobs} {t('providerDetail.jobsCompleted')}</span>
                 </div>
               )}
 
               <div className="flex items-center gap-1 text-sm text-gray-500">
                 <span>📅</span>
-                <span>Member since {memberSince}</span>
+                <span>{t('providerDetail.memberSince')} {memberSince}</span>
               </div>
             </div>
 
@@ -281,7 +283,7 @@ export default function ProviderDetail() {
                   onClick={() => setShowReportModal(true)}
                   className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center gap-1 ml-auto transition"
                 >
-                  <span>🚩</span> Report Provider
+                  <span>🚩</span> {t('providerDetail.reportProvider')}
                 </button>
               </div>
             )}
@@ -297,7 +299,7 @@ export default function ProviderDetail() {
             {/* About */}
             {provider.bio && (
               <div className="bg-white rounded-xl shadow-sm p-5">
-                <h2 className="font-semibold text-gray-800 mb-2">About</h2>
+                <h2 className="font-semibold text-gray-800 mb-2">{t('providerDetail.about')}</h2>
                 <p className="text-gray-600 text-sm leading-relaxed">
                   {provider.bio}
                 </p>
@@ -307,7 +309,7 @@ export default function ProviderDetail() {
             {/* Skills */}
             {provider.skills && provider.skills.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm p-5">
-                <h2 className="font-semibold text-gray-800 mb-3">Skills</h2>
+                <h2 className="font-semibold text-gray-800 mb-3">{t('providerDetail.skills')}</h2>
                 <div className="flex flex-wrap gap-2">
                   {provider.skills.map((skill, index) => (
                     <span
@@ -323,28 +325,28 @@ export default function ProviderDetail() {
 
             {/* Quick stats card */}
             <div className="bg-white rounded-xl shadow-sm p-5">
-              <h2 className="font-semibold text-gray-800 mb-3">Quick Info</h2>
+              <h2 className="font-semibold text-gray-800 mb-3">{t('providerDetail.quickInfo')}</h2>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">District</span>
-                  <span className="text-gray-700 font-medium">{provider.district}</span>
+                  <span className="text-gray-500">{t('providerDetail.district')}</span>
+                  <span className="text-gray-700 font-medium">{t(`districts.${provider.district}`)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Services</span>
+                  <span className="text-gray-500">{t('providerDetail.services')}</span>
                   <span className="text-gray-700 font-medium">{provider.services.length}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Reviews</span>
+                  <span className="text-gray-500">{t('providerDetail.reviewsLabel')}</span>
                   <span className="text-gray-700 font-medium">{provider.reviewCount}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Jobs Done</span>
+                  <span className="text-gray-500">{t('providerDetail.jobsDone')}</span>
                   <span className="text-gray-700 font-medium">{provider.completedJobs}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Verified</span>
+                  <span className="text-gray-500">{t('providerDetail.verified')}</span>
                   <span className={provider.nicVerified ? 'text-green-600 font-medium' : 'text-gray-400'}>
-                    {provider.nicVerified ? '✓ Yes' : 'Pending'}
+                    {provider.nicVerified ? `✓ ${t('providerDetail.yes')}` : t('providerDetail.pending')}
                   </span>
                 </div>
               </div>
@@ -365,7 +367,7 @@ export default function ProviderDetail() {
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                     }`}
                 >
-                  {tab === 'services' ? `Services (${provider.services.length})` : `Reviews (${provider.reviewCount})`}
+                  {tab === 'services' ? `${t('providerDetail.services')} (${provider.services.length})` : `${t('providerDetail.reviewsLabel')} (${provider.reviewCount})`}
                 </button>
               ))}
             </div>
@@ -411,7 +413,7 @@ export default function ProviderDetail() {
                             onClick={() => navigate(`/book/${service.id}`)}
                             className="bg-accent text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-teal-600 transition whitespace-nowrap"
                           >
-                            Book Now
+                            {t('providerDetail.bookNow')}
                           </button>
                         ) : (
                           <span className="text-xs text-gray-400">
@@ -551,7 +553,7 @@ export default function ProviderDetail() {
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <p className="font-medium text-gray-800 text-sm">
-                          {review.customer.name}
+                          {review.customer.name === 'Anonymous Customer' ? t('providerDetail.anonymous') : review.customer.name}
                         </p>
                         <Stars rating={review.rating} />
                       </div>
@@ -580,9 +582,9 @@ export default function ProviderDetail() {
       {showReportModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Report Provider</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">{t('providerDetail.reportModalTitle')}</h2>
             <p className="text-gray-500 text-sm mb-4">
-              Please let us know why you are reporting this provider. Your report will be sent to the admin team.
+              {t('providerDetail.reportModalText')}
             </p>
             
             {reportMessage && (
@@ -593,28 +595,28 @@ export default function ProviderDetail() {
             
             <form onSubmit={handleReportSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Reason <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerDetail.reason')} <span className="text-red-500">*</span></label>
                 <select 
                   required
                   value={reportData.reason}
                   onChange={(e) => setReportData({ ...reportData, reason: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
                 >
-                  <option value="">Select a reason</option>
-                  <option value="Fake profile">Fake profile</option>
-                  <option value="Abusive behavior">Abusive behavior</option>
-                  <option value="Asked for money outside app">Asked for money outside app</option>
-                  <option value="Inappropriate content">Inappropriate content</option>
-                  <option value="Other">Other</option>
+                  <option value="">{t('providerDetail.selectReason')}</option>
+                  <option value="Fake profile">{t('providerDetail.reasonFake')}</option>
+                  <option value="Abusive behavior">{t('providerDetail.reasonAbusive')}</option>
+                  <option value="Asked for money outside app">{t('providerDetail.reasonMoney')}</option>
+                  <option value="Inappropriate content">{t('providerDetail.reasonInappropriate')}</option>
+                  <option value="Other">{t('providerDetail.reasonOther')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Additional details</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('providerDetail.additionalDetails')}</label>
                 <textarea 
                   rows="3"
                   value={reportData.description}
                   onChange={(e) => setReportData({ ...reportData, description: e.target.value })}
-                  placeholder="Provide more context..."
+                  placeholder={t('providerDetail.provideContext')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
@@ -625,14 +627,14 @@ export default function ProviderDetail() {
                   onClick={() => setShowReportModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
                 >
-                  Cancel
+                  {t('providerDetail.cancel')}
                 </button>
                 <button 
                   type="submit" 
                   disabled={reportSubmitting || !reportData.reason}
                   className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50"
                 >
-                  {reportSubmitting ? 'Submitting...' : 'Submit Report'}
+                  {reportSubmitting ? t('providerDetail.submitting') : t('providerDetail.submitReport')}
                 </button>
               </div>
             </form>

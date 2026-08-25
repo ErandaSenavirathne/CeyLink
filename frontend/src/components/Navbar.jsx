@@ -27,17 +27,17 @@ export default function Navbar() {
           <>
             <Link to="/browse" className="hover:text-accent transition">{t('nav.browse')}</Link>
             <Link to="/my-bookings" className="hover:text-accent transition">{t('nav.myBookings')}</Link>
-            <Link to="/my-profile" className="hover:text-accent transition">My Profile</Link>
+            <Link to="/my-profile" className="hover:text-accent transition">{t('nav.myProfile')}</Link>
           </>
         )}
         {user?.role === 'PROVIDER' && (
           <>
             <Link to="/dashboard" className="hover:text-accent transition">{t('nav.dashboard')}</Link>
-            <Link to="/provider-profile" className="hover:text-accent transition">My Profile</Link>
+            <Link to="/provider-profile" className="hover:text-accent transition">{t('nav.myProfile')}</Link>
           </>
         )}
         {user?.role === 'ADMIN' && (
-          <Link to="/admin" className="hover:text-accent transition">Admin Panel</Link>
+          <Link to="/admin" className="hover:text-accent transition">{t('nav.adminPanel')}</Link>
         )}
 
         {/* Language switcher */}

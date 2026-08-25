@@ -112,10 +112,9 @@ export default function Browse() {
 
         {/* Filters row */}
         <div className="flex flex-wrap gap-3 mb-6">
-          {/* Search */}
           <input
             type="text"
-            placeholder="Search by name or service..."
+            placeholder={t('browse.searchPlaceholder') || 'Search by name or service...'}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="flex-1 min-w-48 px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent text-sm"
@@ -130,7 +129,7 @@ export default function Browse() {
             }}
             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent text-sm"
           >
-            <option value="">All Districts</option>
+            <option value="">{t('browse.allDistricts')}</option>
             {districts.map(d => (
               <option key={d} value={d}>{t(`districts.${d}`)}</option>
             ))}
@@ -143,7 +142,7 @@ export default function Browse() {
               onChange={e => setCityFilter(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent text-sm"
             >
-              <option value="">All cities in {districtFilter}</option>
+              <option value="">{t('register.allCitiesIn', 'All cities in')} {t(`districts.${districtFilter}`, districtFilter)}</option>
               {sriLankaCities[districtFilter]?.map(c => (
                 <option key={c} value={c}>{c}</option>
               ))}
@@ -156,9 +155,9 @@ export default function Browse() {
             onChange={e => setCategoryFilter(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent text-sm"
           >
-            <option value="">All Categories</option>
+            <option value="">{t('browse.allCategories')}</option>
             {categories.map(c => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>{t(`categories.${c}`, c)}</option>
             ))}
           </select>
 
@@ -173,7 +172,7 @@ export default function Browse() {
               }}
               className="px-3 py-2 text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 transition"
             >
-              Clear filters
+              {t('browse.clearFilters', 'Clear filters')}
             </button>
           )}
         </div>
@@ -182,8 +181,8 @@ export default function Browse() {
         {!loading && (
           <p className="text-sm text-gray-500 mb-4">
             {filteredProviders.length === 0
-              ? 'No providers found'
-              : `${filteredProviders.length} provider${filteredProviders.length !== 1 ? 's' : ''} found`}
+              ? t('browse.noProvidersFound', 'No providers found')
+              : `${filteredProviders.length} ${filteredProviders.length !== 1 ? t('browse.providersFound', 'providers found') : t('browse.providerFound', 'provider found')}`}
           </p>
         )}
 
@@ -211,9 +210,9 @@ export default function Browse() {
         {!loading && filteredProviders.length === 0 && !error && (
           <div className="bg-white rounded-lg p-8 text-center">
             <p className="text-gray-400 text-4xl mb-3">🔍</p>
-            <p className="text-gray-600 font-medium">No verified providers found</p>
+            <p className="text-gray-600 font-medium">{t('browse.noResults', 'No verified providers found')}</p>
             <p className="text-gray-400 text-sm mt-1">
-              Try changing your filters or search query
+              {t('browse.tryChangingFilters', 'Try changing your filters or search query')}
             </p>
           </div>
         )}
@@ -244,7 +243,7 @@ export default function Browse() {
                           {provider.user.name}
                         </h3>
                         <p className="text-xs text-gray-500">
-                          📍 {provider.district} District
+                          📍 {t(`districts.${provider.district}`)} {t('browse.districtLabel')}
                         </p>
                       </div>
 
@@ -252,16 +251,16 @@ export default function Browse() {
                       <div className="flex flex-col items-end gap-1 ml-2 flex-shrink-0">
                         {provider.nicVerified && (
                           <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
-                            ✓ Verified
+                            ✓ {t('browse.verified')}
                           </span>
                         )}
                         {provider.isBusy ? (
                           <span className="bg-orange-100 text-orange-600 text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
-                            🔧 Busy
+                            🔧 {t('browse.busy')}
                           </span>
                         ) : (
                           <span className="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
-                            🟢 Available
+                            🟢 {t('browse.available')}
                           </span>
                         )}
                       </div>
@@ -278,7 +277,7 @@ export default function Browse() {
                     {/* Completed jobs */}
                     {provider.completedJobs > 0 && (
                       <p className="text-xs text-gray-500 mt-0.5">
-                        ✅ {provider.completedJobs} job{provider.completedJobs !== 1 ? 's' : ''} completed
+                        ✅ {provider.completedJobs} {provider.completedJobs !== 1 ? t('browse.jobsCompleted') : t('browse.jobCompleted')}
                       </p>
                     )}
                   </div>
@@ -319,19 +318,19 @@ export default function Browse() {
                 <div>
                   {provider.services.length > 0 ? (
                     <p className="text-sm font-semibold text-primary">
-                      {provider.services.length} Service{provider.services.length !== 1 ? 's' : ''}
+                      {provider.services.length} {provider.services.length !== 1 ? t('browse.servicesLabel') : t('browse.serviceLabel')}
                     </p>
                   ) : (
-                    <p className="text-xs text-gray-400">Services coming soon</p>
+                    <p className="text-xs text-gray-400">{t('browse.servicesComingSoon')}</p>
                   )}
                 </div>
 
                 {/* CTA button */}
                 <Link
                   to={`/provider/${provider.id}`}
-                  className="bg-primary text-white px-4 py-1.5 rounded-md text-sm font-semibold hover:bg-blue-900 transition"
+                  className="bg-primary text-white px-4 py-1.5 rounded-md text-sm font-semibold hover:bg-blue-900 transition whitespace-nowrap"
                 >
-                  View & Book
+                  {t('browse.viewProfile')}
                 </Link>
               </div>
             </div>

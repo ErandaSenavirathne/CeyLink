@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 import Navbar from '../components/Navbar'
 import sriLankaCities from '../data/sriLankaCities'
+import { useTranslation } from 'react-i18next'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -14,6 +15,7 @@ const districts = [
 ]
 
 export default function MyProfile() {
+  const { t } = useTranslation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -179,11 +181,11 @@ export default function MyProfile() {
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-        <h1 className="text-2xl font-bold text-gray-800">My Profile</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{t('myProfile.title')}</h1>
 
         {/* Profile Photo Upload */}
         <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-accent">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Profile Picture</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">{t('myProfile.profilePicture')}</h2>
           
           {photoMessage.text && (
             <div className={`p-3 rounded-md mb-4 text-sm font-medium ${photoMessage.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
@@ -204,7 +206,7 @@ export default function MyProfile() {
             
             <div className="flex-1 text-center md:text-left">
               <p className="text-sm text-gray-600 mb-3">
-                Upload a clear picture of yourself so providers know who they are working with. (Max 5MB)
+                {t('myProfile.uploadHelper')}
               </p>
               
               <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
@@ -226,7 +228,7 @@ export default function MyProfile() {
                     disabled={uploading}
                     className="bg-accent text-white px-4 py-2 rounded-md font-semibold text-sm hover:bg-teal-600 transition disabled:opacity-50 whitespace-nowrap"
                   >
-                    {uploading ? 'Uploading...' : 'Save Photo'}
+                    {uploading ? t('myProfile.uploading') : t('myProfile.savePhoto')}
                   </button>
                 )}
               </div>
@@ -237,20 +239,20 @@ export default function MyProfile() {
 
         {/* Account Section */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Account Overview</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">{t('myProfile.accountOverview')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-gray-500 mb-1">Email Address</p>
+              <p className="text-gray-500 mb-1">{t('myProfile.emailAddress')}</p>
               <p className="font-medium text-gray-800">{user?.email}</p>
             </div>
             <div>
-              <p className="text-gray-500 mb-1">Account Role</p>
+              <p className="text-gray-500 mb-1">{t('myProfile.accountRole')}</p>
               <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium text-xs">
-                Customer
+                {t('myProfile.customer')}
               </span>
             </div>
             <div>
-              <p className="text-gray-500 mb-1">Member Since</p>
+              <p className="text-gray-500 mb-1">{t('myProfile.memberSince')}</p>
               <p className="font-medium text-gray-800">
                 {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-LK', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}
               </p>
@@ -260,7 +262,7 @@ export default function MyProfile() {
 
         {/* Personal Information */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Personal Information</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">{t('myProfile.personalInformation')}</h2>
 
           {profileSuccess && <div className="bg-green-100 text-green-700 p-3 rounded-md mb-4 text-sm font-medium">{profileSuccess}</div>}
           {profileError && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4 text-sm font-medium">{profileError}</div>}
@@ -268,7 +270,7 @@ export default function MyProfile() {
           <form onSubmit={handleProfileSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('myProfile.fullName')}</label>
                 <input
                   type="text"
                   required
@@ -278,7 +280,7 @@ export default function MyProfile() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('myProfile.phoneNumber')}</label>
                 <input
                   type="tel"
                   required
@@ -291,21 +293,21 @@ export default function MyProfile() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('myProfile.district')}</label>
                 <select
                   required
                   value={profileData.district}
                   onChange={e => setProfileData({ ...profileData, district: e.target.value, city: '' })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm bg-white"
                 >
-                  <option value="">Select District</option>
+                  <option value="">{t('myProfile.selectDistrict')}</option>
                   {districts.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  City/Town <span className="text-gray-400 font-normal">(Optional)</span>
+                  {t('myProfile.cityTown')} <span className="text-gray-400 font-normal">({t('myProfile.optional')})</span>
                 </label>
                 <select
                   value={profileData.city}
@@ -313,7 +315,7 @@ export default function MyProfile() {
                   disabled={!profileData.district}
                   className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent text-sm bg-white ${!profileData.district ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                 >
-                  <option value="">{profileData.district ? `All cities in ${profileData.district}` : 'Select district first'}</option>
+                  <option value="">{profileData.district ? `${t('myProfile.allCitiesIn')} ${profileData.district}` : t('myProfile.selectDistrictFirst')}</option>
                   {profileData.district && sriLankaCities[profileData.district]?.map(c => (
                     <option key={c} value={c}>{c}</option>
                   ))}
@@ -322,7 +324,7 @@ export default function MyProfile() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('myProfile.address')}</label>
               <textarea
                 required
                 rows="2"
@@ -337,21 +339,21 @@ export default function MyProfile() {
               disabled={profileLoading}
               className="bg-primary text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-blue-900 transition disabled:opacity-50"
             >
-              {profileLoading ? 'Saving...' : 'Save Changes'}
+              {profileLoading ? t('myProfile.saving') : t('myProfile.saveChanges')}
             </button>
           </form>
         </div>
 
         {/* Security Section */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Security</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">{t('myProfile.security')}</h2>
 
           {passwordSuccess && <div className="bg-green-100 text-green-700 p-3 rounded-md mb-4 text-sm font-medium">{passwordSuccess}</div>}
           {passwordError && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4 text-sm font-medium">{passwordError}</div>}
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('myProfile.currentPassword')}</label>
               <input
                 type="password"
                 required
@@ -363,7 +365,7 @@ export default function MyProfile() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('myProfile.newPassword')}</label>
                 <input
                   type="password"
                   required
@@ -373,7 +375,7 @@ export default function MyProfile() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('myProfile.confirmNewPassword')}</label>
                 <input
                   type="password"
                   required
@@ -389,22 +391,22 @@ export default function MyProfile() {
               disabled={passwordLoading}
               className="bg-accent text-white px-6 py-2 rounded-md text-sm font-semibold hover:bg-teal-600 transition disabled:opacity-50"
             >
-              {passwordLoading ? 'Updating...' : 'Change Password'}
+              {passwordLoading ? t('myProfile.updating') : t('myProfile.changePassword')}
             </button>
           </form>
         </div>
 
         {/* Danger Zone */}
         <div className="bg-red-50 rounded-xl border border-red-100 p-6 mt-6">
-          <h2 className="text-lg font-semibold text-red-800 mb-2">Danger Zone</h2>
+          <h2 className="text-lg font-semibold text-red-800 mb-2">{t('myProfile.dangerZone')}</h2>
           <p className="text-red-600 text-sm mb-4">
-            Deleting your account is permanent. It will anonymize your profile, hide you from search results, and you will lose access to CeyLink immediately.
+            {t('myProfile.deleteWarning')}
           </p>
           <button
             onClick={() => setShowDeleteModal(true)}
             className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-red-700 transition"
           >
-            Delete Account
+            {t('myProfile.deleteAccount')}
           </button>
         </div>
 
@@ -414,9 +416,9 @@ export default function MyProfile() {
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Delete Account</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">{t('myProfile.deleteAccountModalTitle')}</h2>
             <p className="text-gray-600 text-sm mb-4">
-              This action cannot be undone. To confirm, please type <strong>DELETE</strong> below.
+              {t('myProfile.deleteModalText')}
             </p>
             
             {deleteError && (
@@ -441,14 +443,14 @@ export default function MyProfile() {
                   onClick={() => setShowDeleteModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
                 >
-                  Cancel
+                  {t('myProfile.cancel')}
                 </button>
                 <button 
                   type="submit" 
                   disabled={deleteConfirmation !== 'DELETE' || deleteLoading}
                   className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50"
                 >
-                  {deleteLoading ? 'Deleting...' : 'Permanently Delete'}
+                  {deleteLoading ? t('myProfile.deleting') : t('myProfile.permanentlyDelete')}
                 </button>
               </div>
             </form>
