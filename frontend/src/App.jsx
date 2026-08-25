@@ -37,8 +37,8 @@ function App() {
       <Route path="/admin/login" element={user ? (<Navigate to={user.role === 'ADMIN' ? '/admin' : user.role === 'PROVIDER' ? '/dashboard' : '/browse'} />) : (<AdminLogin />)} />
       <Route path="/register" element={user ? (<Navigate to={user.role === 'ADMIN' ? '/admin' : user.role === 'PROVIDER' ? '/dashboard' : '/browse'} />) : (<Register />)} />
       <Route path="/" element={<Navigate to={!user ? '/login' : user.role === 'ADMIN' ? '/admin' : user.role === 'PROVIDER' ? '/dashboard' : '/browse'} />} />
-      <Route path="/browse" element={<ProtectedRoute allowedRoles={['CUSTOMER', 'PROVIDER']}><Browse /></ProtectedRoute>} />
-      <Route path="/provider/:id" element={<ProtectedRoute allowedRoles={['CUSTOMER', 'PROVIDER']}><ProviderDetail /></ProtectedRoute>} />
+      <Route path="/browse" element={<Browse />} />
+      <Route path="/provider/:id" element={<ProviderDetail />} />
       <Route path="/book/:serviceId" element={<ProtectedRoute allowedRoles={['CUSTOMER']}><BookingForm /></ProtectedRoute>} />
       <Route path="/my-bookings" element={<ProtectedRoute allowedRoles={['CUSTOMER']}><MyBookings /></ProtectedRoute>} />
       <Route path="/my-profile" element={<ProtectedRoute allowedRoles={['CUSTOMER']}><MyProfile /></ProtectedRoute>} />

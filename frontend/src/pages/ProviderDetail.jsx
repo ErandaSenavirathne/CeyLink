@@ -127,6 +127,29 @@ export default function ProviderDetail() {
     }
   }
 
+  const handleShare = async () => {
+    const shareData = {
+      title: `${provider.user.name} on CeyLink`,
+      text: `Check out ${provider.user.name}'s profile on CeyLink!`,
+      url: window.location.href
+    }
+    
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData)
+      } catch (err) {
+        // user cancelled share, ignore silently
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(window.location.href)
+        toast.success(t('providerDetail.linkCopied', 'Profile link copied to clipboard!'))
+      } catch (err) {
+        toast.error('Failed to copy link.')
+      }
+    }
+  }
+
   const unreviewedBookings = myBookings.filter(
     b => b.providerId === provider?.id && b.status === 'COMPLETED' && !b.review
   )
@@ -214,16 +237,29 @@ export default function ProviderDetail() {
                 name={provider.user.name}
                 size="lg"
               />
-              {/* Availability badge */}
-              {provider.isBusy ? (
-                <span className="bg-orange-100 text-orange-600 text-xs px-3 py-1 rounded-full font-medium">
-                  🔧 {t('providerDetail.busy')}
-                </span>
-              ) : (
-                <span className="bg-emerald-100 text-emerald-700 text-xs px-3 py-1 rounded-full font-medium">
-                  🟢 {t('providerDetail.available')}
-                </span>
-              )}
+              <div className="flex items-center gap-2 pb-2">
+                {/* Share Button */}
+                <button
+                  onClick={handleShare}
+                  className="bg-white/90 backdrop-blur-sm text-gray-700 hover:text-accent border border-gray-200 shadow-sm hover:shadow p-2 rounded-full transition focus:outline-none focus:ring-2 focus:ring-accent"
+                  title="Share Profile"
+                  aria-label="Share Profile"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-5.368m0 5.368l5.662 3.397m-5.662-3.397a3 3 0 01-5.662-3.397m0 5.368a3 3 0 100-5.368M15 17a3 3 0 11-6 0 3 3 0 016 0zM15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+                {/* Availability badge */}
+                {provider.isBusy ? (
+                  <span className="bg-orange-100 text-orange-600 text-xs px-3 py-1 rounded-full font-medium border border-orange-200">
+                    🔧 {t('providerDetail.busy')}
+                  </span>
+                ) : (
+                  <span className="bg-emerald-100 text-emerald-700 text-xs px-3 py-1 rounded-full font-medium border border-emerald-200">
+                    🟢 {t('providerDetail.available')}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Name and badges */}
