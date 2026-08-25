@@ -150,7 +150,10 @@ export default function Register() {
       <SEO title="Register | CeyLink" />
       <Navbar />
       <div className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-md">
+        <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-md relative pt-12">
+          <Link to="/" className="absolute top-5 left-5 text-sm font-semibold text-gray-400 hover:text-gray-700 transition flex items-center gap-1.5">
+            ← Back to Home
+          </Link>
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 text-accent mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">

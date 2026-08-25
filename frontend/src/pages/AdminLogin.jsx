@@ -43,7 +43,9 @@ export default function AdminLogin() {
       <div className="bg-slate-800/80 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-700">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">
-            CeyLink <span className="text-amber-500">Admin</span> 🇱🇰
+            <Link to="/" className="hover:opacity-80 transition cursor-pointer">
+              CeyLink <span className="text-amber-500">Admin</span> 🇱🇰
+            </Link>
           </h1>
           <p className="text-slate-400 text-sm">Sign in to control panel</p>
         </div>

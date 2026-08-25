@@ -192,7 +192,7 @@ export default function ProviderDetail() {
       <div className="max-w-4xl mx-auto px-4 pt-4">
         <button
           onClick={() => navigate(-1)}
-          className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 transition"
+          className="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1.5 transition font-medium"
         >
           ← {t('providerDetail.back')}
         </button>

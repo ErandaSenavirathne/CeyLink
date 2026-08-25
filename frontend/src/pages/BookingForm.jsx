@@ -164,7 +164,13 @@ export default function BookingForm() {
       <Navbar />
 
       <div className="max-w-lg mx-auto px-4 py-8">
-            <h1 className="text-xl font-bold text-gray-800 mb-1">{t('bookingForm.title')}</h1>
+        <button
+          onClick={() => navigate(-1)}
+          className="text-sm text-gray-500 hover:text-gray-800 flex items-center gap-1.5 transition mb-4 font-medium"
+        >
+          ← Back to Provider
+        </button>
+        <h1 className="text-xl font-bold text-gray-800 mb-1">{t('bookingForm.title')}</h1>
 
         {service && (
           <div className="bg-white rounded-lg shadow-sm p-4 mb-6 mt-4">
