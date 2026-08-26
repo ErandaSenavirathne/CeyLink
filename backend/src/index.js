@@ -44,6 +44,7 @@ app.use('/api/reviews', require('./routes/reviews'))
 app.use('/api/upload', require('./routes/upload'))
 app.use('/api/admin', require('./routes/admin'))
 app.use('/api/reports', require('./routes/reports'))
+app.use('/api/categories', require('./routes/categories'))
 
 // Global error handler
 app.use((err, req, res, next) => {

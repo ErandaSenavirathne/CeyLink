@@ -299,3 +299,65 @@ exports.reviewService = async (req, res) => {
     res.status(500).json({ error: 'Could not review service', details: error.message })
   }
 }
+
+// GET all categories (including deactivated) for admin
+exports.getCategories = async (req, res) => {
+  try {
+    const categories = await prisma.category.findMany({
+      orderBy: { createdAt: 'asc' }
+    })
+    res.json(categories)
+  } catch (error) {
+    res.status(500).json({ error: 'Could not fetch categories', details: error.message })
+  }
+}
+
+// CREATE new category
+exports.createCategory = async (req, res) => {
+  try {
+    const { icon, nameEn, nameSi, nameTa } = req.body
+    
+    if (!icon || !nameEn || !nameSi || !nameTa) {
+      return res.status(400).json({ error: 'Icon and names in all 3 languages are required' })
+    }
+
+    const category = await prisma.category.create({
+      data: { icon, nameEn, nameSi, nameTa }
+    })
+
+    res.status(201).json({ message: 'Category created successfully', category })
+  } catch (error) {
+    res.status(500).json({ error: 'Could not create category', details: error.message })
+  }
+}
+
+// UPDATE category
+exports.updateCategory = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { icon, nameEn, nameSi, nameTa, isActive } = req.body
+
+    const category = await prisma.category.update({
+      where: { id },
+      data: { icon, nameEn, nameSi, nameTa, isActive }
+    })
+
+    res.json({ message: 'Category updated successfully', category })
+  } catch (error) {
+    res.status(500).json({ error: 'Could not update category', details: error.message })
+  }
+}
+
+// DELETE category (Soft delete / Deactivate)
+exports.deleteCategory = async (req, res) => {
+  try {
+    const { id } = req.params
+    const category = await prisma.category.update({
+      where: { id },
+      data: { isActive: false }
+    })
+    res.json({ message: 'Category deactivated successfully', category })
+  } catch (error) {
+    res.status(500).json({ error: 'Could not deactivate category', details: error.message })
+  }
+}

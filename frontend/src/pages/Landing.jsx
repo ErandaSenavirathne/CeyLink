@@ -1,11 +1,25 @@
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import SEO from '../components/SEO'
+import api from '../services/api'
 
 export default function Landing() {
     const { t, i18n } = useTranslation()
     const [menuOpen, setMenuOpen] = useState(false)
+    const [categories, setCategories] = useState([])
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await api.get('/categories')
+                setCategories(res.data)
+            } catch (err) {
+                console.error("Could not fetch categories", err)
+            }
+        }
+        fetchCategories()
+    }, [])
 
     const languages = [
         { code: 'en', label: 'EN' },
@@ -28,18 +42,11 @@ export default function Landing() {
         { icon: '✅', title: t('landing.how.step3Title'), desc: t('landing.how.step3Desc') }
     ]
 
-    const services = [
-        { icon: '🚿', label: t('landing.categories.plumbing') },
-        { icon: '⚡', label: t('landing.categories.electrical') },
-        { icon: '🪚', label: t('landing.categories.carpentry') },
-        { icon: '🎨', label: t('landing.categories.painting') },
-        { icon: '🧹', label: t('landing.categories.cleaning') },
-        { icon: '📚', label: t('landing.categories.tutoring') },
-        { icon: '💇', label: t('landing.categories.beauty') },
-        { icon: '🌿', label: t('landing.categories.gardening') },
-        { icon: '❄️', label: t('landing.categories.acRepair') },
-        { icon: '🛠️', label: t('landing.categories.andMore') }
-    ]
+    const getCategoryName = (cat) => {
+        if (i18n.language === 'si' && cat.nameSi) return cat.nameSi
+        if (i18n.language === 'ta' && cat.nameTa) return cat.nameTa
+        return cat.nameEn
+    }
 
     return (
         <div className="min-h-screen flex flex-col font-sans">
@@ -190,13 +197,13 @@ export default function Landing() {
                         {t('landing.categories.title')}
                     </p>
                     <div className="flex flex-wrap justify-center gap-3">
-                        {services.map(service => (
+                        {categories.map(cat => (
                             <div
-                                key={service.label}
+                                key={cat.id}
                                 className="flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-2 text-sm text-gray-700 shadow-sm hover:border-primary hover:text-primary transition cursor-default"
                             >
-                                <span>{service.icon}</span>
-                                <span className="font-medium">{service.label}</span>
+                                <span>{cat.icon}</span>
+                                <span className="font-medium">{getCategoryName(cat)}</span>
                             </div>
                         ))}
                     </div>

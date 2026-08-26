@@ -15,10 +15,7 @@ const districts = [
   'Monaragala', 'Ratnapura', 'Kegalle'
 ]
 
-const categories = [
-  'Plumbing', 'Electrical', 'Carpentry', 'Painting', 'Cleaning',
-  'Tutoring', 'Beauty', 'Gardening', 'AC Repair', 'Other'
-]
+
 
 // Star rating display component
 function StarRating({ rating, count }) {
@@ -60,8 +57,9 @@ function Avatar({ name, photo, size = 'md' }) {
 }
 
 export default function Browse() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [providers, setProviders] = useState([])
+  const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [districtFilter, setDistrictFilter] = useState('')
@@ -83,6 +81,18 @@ export default function Browse() {
     }, 500)
     return () => clearTimeout(handler)
   }, [searchQuery])
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get('/categories')
+        setCategories(res.data)
+      } catch (err) {
+        console.error("Could not fetch categories", err)
+      }
+    }
+    fetchCategories()
+  }, [])
 
   useEffect(() => {
     fetchProviders()
@@ -181,9 +191,12 @@ export default function Browse() {
             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent text-sm"
           >
             <option value="">{t('browse.allCategories')}</option>
-            {categories.map(c => (
-              <option key={c} value={c}>{t(`categories.${c}`, c)}</option>
-            ))}
+            {categories.map(c => {
+              const name = i18n.language === 'si' && c.nameSi ? c.nameSi 
+                         : i18n.language === 'ta' && c.nameTa ? c.nameTa 
+                         : c.nameEn;
+              return <option key={c.id} value={c.nameEn}>{name}</option>
+            })}
           </select>
 
           {/* Clear filters */}

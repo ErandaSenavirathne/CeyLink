@@ -16,14 +16,12 @@ const districts = [
   'Monaragala', 'Ratnapura', 'Kegalle'
 ]
 
-const categories = [
-  'Plumbing', 'Electrical', 'Carpentry', 'Painting', 'Cleaning',
-  'Tutoring', 'Beauty', 'Gardening', 'AC Repair', 'Other'
-]
+
 
 export default function ProviderProfile() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { user, logout } = useAuth()
+  const [dbCategories, setDbCategories] = useState([])
   const navigate = useNavigate()
 
   const [loading, setLoading] = useState(true)
@@ -81,8 +79,18 @@ export default function ProviderProfile() {
       return
     }
     fetchProfile()
+    fetchCategories()
     fetchServices()
   }, [user])
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get('/categories')
+      setDbCategories(res.data)
+    } catch (err) {
+      console.error("Failed to load categories")
+    }
+  }
 
   const fetchProfile = async () => {
     try {
@@ -588,8 +596,13 @@ export default function ProviderProfile() {
                           onChange={e => setEditForm({ ...editForm, category: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
                         >
-                          <option value="">{t('providerProfile.selectCategory')}</option>
-                          {categories.map(c => <option key={c} value={c}>{t(`categories.${c}`, c)}</option>)}
+                          <option value="">Select Category</option>
+                      {dbCategories.map(c => {
+                        const name = i18n.language === 'si' && c.nameSi ? c.nameSi 
+                                   : i18n.language === 'ta' && c.nameTa ? c.nameTa 
+                                   : c.nameEn;
+                        return <option key={c.id} value={c.nameEn}>{name}</option>
+                      })}
                         </select>
                       </div>
                     </div>
@@ -657,7 +670,12 @@ export default function ProviderProfile() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
                     >
                       <option value="">{t('providerProfile.selectCategory')}</option>
-                      {categories.map(c => <option key={c} value={c}>{t(`categories.${c}`, c)}</option>)}
+                      {dbCategories.map(c => {
+                        const name = i18n.language === 'si' && c.nameSi ? c.nameSi 
+                                   : i18n.language === 'ta' && c.nameTa ? c.nameTa 
+                                   : c.nameEn;
+                        return <option key={c.id} value={c.nameEn}>{name}</option>
+                      })}
                     </select>
                   </div>
                 </div>

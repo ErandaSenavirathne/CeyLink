@@ -12,5 +12,9 @@ router.put('/users/:id', adminAuth, adminController.updateUser)
 router.get('/bookings', adminAuth, adminController.getBookings)
 router.get('/services/pending', adminAuth, adminController.getPendingServices)
 router.patch('/services/:id/review', adminAuth, adminController.reviewService)
+router.get('/categories', adminAuth, adminController.getCategories)
+router.post('/categories', adminAuth, adminController.createCategory)
+router.put('/categories/:id', adminAuth, adminController.updateCategory)
+router.delete('/categories/:id', adminAuth, adminController.deleteCategory)
 
 module.exports = router

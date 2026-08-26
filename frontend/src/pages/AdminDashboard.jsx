@@ -27,6 +27,7 @@ export default function AdminDashboard() {
   const [bookings, setBookings] = useState([])
   const [pendingServices, setPendingServices] = useState([])
   const [reports, setReports] = useState([])
+  const [categories, setCategories] = useState([])
   const [rejectReasons, setRejectReasons] = useState({})
   const [providerRejectReasons, setProviderRejectReasons] = useState({})
   const [activeTab, setActiveTab] = useState('overview')
@@ -36,6 +37,8 @@ export default function AdminDashboard() {
   const [filterEndDate, setFilterEndDate] = useState('')
   const [showUserModal, setShowUserModal] = useState(false)
   const [currentUserData, setCurrentUserData] = useState(null)
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [currentCategoryData, setCurrentCategoryData] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -50,13 +53,14 @@ export default function AdminDashboard() {
       if (filterEndDate) queryParams.push(`endDate=${filterEndDate}`)
       const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : ''
 
-      const [statsRes, providersRes, usersRes, bookingsRes, servicesRes, reportsRes] = await Promise.all([
+      const [statsRes, providersRes, usersRes, bookingsRes, servicesRes, reportsRes, categoriesRes] = await Promise.all([
         api.get(`/admin/stats${queryString}`),
         api.get('/admin/providers'),
         api.get('/admin/users'),
         api.get(`/admin/bookings${queryString}`),
         api.get('/admin/services/pending'),
-        api.get(`/reports${queryString}`)
+        api.get(`/reports${queryString}`),
+        api.get('/admin/categories')
       ])
       setStats(statsRes.data)
       setProviders(providersRes.data)
@@ -64,6 +68,7 @@ export default function AdminDashboard() {
       setBookings(bookingsRes.data)
       setPendingServices(servicesRes.data)
       setReports(reportsRes.data)
+      setCategories(categoriesRes.data)
     } catch (err) {
       if (err.response?.status === 403) {
         toast.error('Admin access required')
@@ -147,7 +152,28 @@ export default function AdminDashboard() {
     }
   }
 
-  const tabs = ['overview', 'providers', 'services', 'users', 'bookings', 'reports']
+  const handleCategorySubmit = async (e) => {
+    e.preventDefault()
+    setUpdatingId('category-modal')
+    try {
+      if (currentCategoryData.id) {
+        await api.put(`/admin/categories/${currentCategoryData.id}`, currentCategoryData)
+        toast.success('Category updated successfully')
+      } else {
+        await api.post('/admin/categories', currentCategoryData)
+        toast.success('Category created successfully')
+      }
+      setShowCategoryModal(false)
+      setCurrentCategoryData(null)
+      fetchAll()
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to save category')
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const tabs = ['overview', 'categories', 'providers', 'services', 'users', 'bookings', 'reports']
 
   if (loading) {
     return (
@@ -349,6 +375,66 @@ export default function AdminDashboard() {
                 </button>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Categories Tab */}
+        {activeTab === 'categories' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">Service Categories</h2>
+              <button
+                onClick={() => {
+                  setCurrentCategoryData({ icon: '✨', nameEn: '', nameSi: '', nameTa: '', isActive: true })
+                  setShowCategoryModal(true)
+                }}
+                className="bg-primary text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-900 transition flex items-center gap-1"
+              >
+                + Add Category
+              </button>
+            </div>
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+              <table className="w-full text-sm whitespace-nowrap">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    {['Icon', 'English', 'Sinhala', 'Tamil', 'Status', 'Actions'].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-gray-600 font-medium">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {categories.map(category => (
+                    <tr key={category.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-2xl">{category.icon}</td>
+                      <td className="px-4 py-3 font-medium text-gray-800">{category.nameEn}</td>
+                      <td className="px-4 py-3 text-gray-600">{category.nameSi}</td>
+                      <td className="px-4 py-3 text-gray-600">{category.nameTa}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${category.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {category.isActive ? 'Active' : 'Deactivated'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => {
+                            setCurrentCategoryData(category)
+                            setShowCategoryModal(true)
+                          }}
+                          className="text-primary hover:text-blue-900 font-medium transition"
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {categories.length === 0 && (
+                    <tr>
+                      <td colSpan="6" className="px-4 py-8 text-center text-gray-500">No categories found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -842,6 +928,109 @@ export default function AdminDashboard() {
                   className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-blue-900 transition disabled:opacity-50"
                 >
                   {updatingId === 'user-modal' ? 'Saving...' : 'Save User'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Category Modal */}
+      {showCategoryModal && currentCategoryData && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h2 className="text-lg font-bold text-gray-800">
+                {currentCategoryData.id ? 'Edit Category' : 'Add New Category'}
+              </h2>
+              <button 
+                onClick={() => {
+                  setShowCategoryModal(false)
+                  setCurrentCategoryData(null)
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <form onSubmit={handleCategorySubmit} className="p-6 space-y-4">
+              <div className="flex gap-4">
+                <div className="w-1/4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Icon/Emoji</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength="2"
+                    value={currentCategoryData.icon}
+                    onChange={(e) => setCurrentCategoryData({ ...currentCategoryData, icon: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-2xl text-center"
+                  />
+                </div>
+                <div className="w-3/4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">English Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={currentCategoryData.nameEn}
+                    onChange={(e) => setCurrentCategoryData({ ...currentCategoryData, nameEn: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sinhala Name</label>
+                <input
+                  type="text"
+                  required
+                  value={currentCategoryData.nameSi}
+                  onChange={(e) => setCurrentCategoryData({ ...currentCategoryData, nameSi: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tamil Name</label>
+                <input
+                  type="text"
+                  required
+                  value={currentCategoryData.nameTa}
+                  onChange={(e) => setCurrentCategoryData({ ...currentCategoryData, nameTa: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                />
+              </div>
+
+              {currentCategoryData.id && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select
+                    value={currentCategoryData.isActive ? 'true' : 'false'}
+                    onChange={(e) => setCurrentCategoryData({ ...currentCategoryData, isActive: e.target.value === 'true' })}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm bg-white font-medium ${
+                      currentCategoryData.isActive ? 'border-green-300 text-green-700' : 'border-red-300 text-red-700'
+                    }`}
+                  >
+                    <option value="true">Active</option>
+                    <option value="false">Deactivated</option>
+                  </select>
+                </div>
+              )}
+
+              <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCategoryModal(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-600 rounded-md text-sm font-medium hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updatingId === 'category-modal'}
+                  className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-blue-900 transition disabled:opacity-50"
+                >
+                  {updatingId === 'category-modal' ? 'Saving...' : 'Save Category'}
                 </button>
               </div>
             </form>
