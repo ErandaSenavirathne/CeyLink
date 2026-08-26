@@ -70,20 +70,28 @@ export default function Browse() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [nearMe, setNearMe] = useState(false)
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
+  const [debouncedMinPrice, setDebouncedMinPrice] = useState('')
+  const [debouncedMaxPrice, setDebouncedMaxPrice] = useState('')
+  const [minRating, setMinRating] = useState('')
+  const [isAvailable, setIsAvailable] = useState(false)
   
   // Pagination state
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalProviders, setTotalProviders] = useState(0)
 
-  // Debounce search query
+  // Debounce search query and prices
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery)
+      setDebouncedMinPrice(minPrice)
+      setDebouncedMaxPrice(maxPrice)
       setPage(1) // Reset to page 1 on new search
     }, 500)
     return () => clearTimeout(handler)
-  }, [searchQuery])
+  }, [searchQuery, minPrice, maxPrice])
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -99,7 +107,7 @@ export default function Browse() {
 
   useEffect(() => {
     fetchProviders()
-  }, [districtFilter, cityFilter, categoryFilter, debouncedSearch, page, nearMe])
+  }, [districtFilter, cityFilter, categoryFilter, debouncedSearch, page, nearMe, debouncedMinPrice, debouncedMaxPrice, minRating, isAvailable])
 
   const fetchProviders = async () => {
     setLoading(true)
@@ -113,6 +121,10 @@ export default function Browse() {
       if (cityFilter) params.city = cityFilter
       if (categoryFilter) params.category = categoryFilter
       if (debouncedSearch) params.search = debouncedSearch
+      if (debouncedMinPrice) params.minPrice = debouncedMinPrice
+      if (debouncedMaxPrice) params.maxPrice = debouncedMaxPrice
+      if (minRating) params.minRating = minRating
+      if (isAvailable) params.isAvailable = true
       if (nearMe && user) {
         params.nearMe = true
         params.userCity = user.city
@@ -223,14 +235,74 @@ export default function Browse() {
             })}
           </select>
 
+          {/* Min Price */}
+          <div className="flex items-center gap-1 border border-gray-300 rounded-md bg-white px-2 py-1 text-sm h-[38px]">
+            <span className="text-gray-500">Rs.</span>
+            <input
+              type="number"
+              min="0"
+              placeholder="Min"
+              value={minPrice}
+              onChange={e => setMinPrice(e.target.value)}
+              className="w-16 focus:outline-none"
+            />
+          </div>
+
+          {/* Max Price */}
+          <div className="flex items-center gap-1 border border-gray-300 rounded-md bg-white px-2 py-1 text-sm h-[38px]">
+            <span className="text-gray-500">Rs.</span>
+            <input
+              type="number"
+              min="0"
+              placeholder="Max"
+              value={maxPrice}
+              onChange={e => setMaxPrice(e.target.value)}
+              className="w-16 focus:outline-none"
+            />
+          </div>
+
+          {/* Rating filter */}
+          <select
+            value={minRating}
+            onChange={e => {
+              setMinRating(e.target.value)
+              setPage(1)
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent text-sm"
+          >
+            <option value="">Any Rating</option>
+            <option value="4.5">4.5+ Stars</option>
+            <option value="4.0">4.0+ Stars</option>
+            <option value="3.0">3.0+ Stars</option>
+          </select>
+
+          {/* Availability filter */}
+          <button
+            onClick={() => {
+              setIsAvailable(!isAvailable)
+              setPage(1)
+            }}
+            className={`px-3 py-2 border rounded-md text-sm font-medium transition flex items-center gap-1 ${
+              isAvailable 
+                ? 'bg-green-50 border-green-200 text-green-700' 
+                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            ✅ Available Now
+          </button>
+
           {/* Clear filters */}
-          {(districtFilter || cityFilter || categoryFilter || searchQuery) && (
+          {(districtFilter || cityFilter || categoryFilter || searchQuery || minPrice || maxPrice || minRating || isAvailable) && (
             <button
               onClick={() => {
                 setDistrictFilter('')
                 setCityFilter('')
                 setCategoryFilter('')
                 setSearchQuery('')
+                setMinPrice('')
+                setMaxPrice('')
+                setMinRating('')
+                setIsAvailable(false)
                 setPage(1)
               }}
               className="px-3 py-2 text-sm text-gray-500 border border-gray-300 rounded-md hover:bg-gray-100 transition"

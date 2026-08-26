@@ -4,7 +4,7 @@ const cloudinary = require('../utils/cloudinary')
 // GET all providers (with optional filters)
 exports.getProviders = async (req, res) => {
   try {
-    const { district, city, category, search, page = 1, limit = 10, nearMe, userCity, userDistrict } = req.query
+    const { district, city, category, search, page = 1, limit = 10, nearMe, userCity, userDistrict, minPrice, maxPrice, minRating, isAvailable } = req.query
 
     const pageNumber = parseInt(page, 10)
     const pageSize = parseInt(limit, 10)
@@ -22,8 +22,15 @@ exports.getProviders = async (req, res) => {
       }),
       verificationStatus: 'VERIFIED',
       user: { isActive: true },
-      ...(category && {
-        services: { some: { category, status: 'APPROVED' } }
+      ...( (category || minPrice || maxPrice) && {
+        services: { 
+          some: { 
+            status: 'APPROVED',
+            ...(category && { category }),
+            ...(minPrice && { basePrice: { gte: parseFloat(minPrice) } }),
+            ...(maxPrice && { basePrice: { lte: parseFloat(maxPrice) } })
+          } 
+        }
       }),
       ...(search && {
         OR: [
@@ -37,9 +44,11 @@ exports.getProviders = async (req, res) => {
     let totalProviders = 0
     let providers = []
 
-    if (nearMe === 'true' && userDistrict) {
-      // Fetch all matching providers to sort in JS by proximity
-      const allProviders = await prisma.provider.findMany({
+    const requiresJsFiltering = (nearMe === 'true' && userDistrict) || minRating || isAvailable === 'true'
+
+    if (requiresJsFiltering) {
+      // Fetch all matching providers to sort/filter in JS
+      let allProviders = await prisma.provider.findMany({
         where: whereClause,
         include: {
           user: { select: { name: true, phone: true, createdAt: true } },
@@ -69,6 +78,21 @@ exports.getProviders = async (req, res) => {
 
         return 0 // Keep original order if both are same level
       })
+
+      if (minRating) {
+        allProviders = allProviders.filter(p => {
+          const ratings = p.reviews.map(r => r.rating)
+          const avg = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0
+          return avg >= parseFloat(minRating)
+        })
+      }
+
+      if (isAvailable === 'true') {
+        allProviders = allProviders.filter(p => {
+          const isBusy = p.bookings.some(b => b.status === 'IN_PROGRESS')
+          return !isBusy
+        })
+      }
 
       totalProviders = allProviders.length
       providers = allProviders.slice(skip, skip + pageSize)
