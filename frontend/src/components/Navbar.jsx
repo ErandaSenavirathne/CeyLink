@@ -41,17 +41,19 @@ export default function Navbar() {
         )}
 
         {/* Language switcher */}
-        <div className="flex gap-1 bg-white/10 rounded-md p-1">
-          {languages.map((lang) => (
-            <button
-              key={lang.code}
-              onClick={() => i18n.changeLanguage(lang.code)}
-              className={`text-xs px-2 py-1 rounded ${i18n.language === lang.code ? 'bg-accent text-white' : 'text-gray-300'}`}
-            >
-              {lang.label}
-            </button>
-          ))}
-        </div>
+        {user?.role !== 'ADMIN' && (
+          <div className="flex gap-1 bg-white/10 rounded-md p-1">
+            {languages.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => i18n.changeLanguage(lang.code)}
+                className={`text-xs px-2 py-1 rounded ${i18n.language === lang.code ? 'bg-accent text-white' : 'text-gray-300'}`}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {user && (
           <>

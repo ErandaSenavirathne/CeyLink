@@ -34,6 +34,8 @@ export default function AdminDashboard() {
   const [updatingId, setUpdatingId] = useState(null)
   const [filterStartDate, setFilterStartDate] = useState('')
   const [filterEndDate, setFilterEndDate] = useState('')
+  const [showUserModal, setShowUserModal] = useState(false)
+  const [currentUserData, setCurrentUserData] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -121,6 +123,27 @@ export default function AdminDashboard() {
       toast.success('Report status updated')
     } catch (err) {
       toast.error('Failed to update report status')
+    }
+  }
+
+  const handleUserSubmit = async (e) => {
+    e.preventDefault()
+    setUpdatingId('user-modal')
+    try {
+      if (currentUserData.id) {
+        await api.put(`/admin/users/${currentUserData.id}`, currentUserData)
+        toast.success('User updated successfully')
+      } else {
+        await api.post('/admin/users', currentUserData)
+        toast.success('User created successfully')
+      }
+      setShowUserModal(false)
+      setCurrentUserData(null)
+      fetchAll()
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to save user')
+    } finally {
+      setUpdatingId(null)
     }
   }
 
@@ -556,37 +579,68 @@ export default function AdminDashboard() {
 
         {/* Users Tab */}
         {activeTab === 'users' && (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  {['Name', 'Email', 'Role', 'District', 'Joined'].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-gray-600 font-medium">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {users.map(user => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-800">{user.name}</td>
-                    <td className="px-4 py-3 text-gray-600">{user.email}</td>
-                    <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
-                        user.role === 'PROVIDER' ? 'bg-blue-100 text-blue-700' :
-                        'bg-gray-100 text-gray-600'
-                      }`}>
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{user.district || '—'}</td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </td>
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">Manage Users</h2>
+              <button
+                onClick={() => {
+                  setCurrentUserData({ name: '', email: '', password: '', role: 'CUSTOMER', isActive: true })
+                  setShowUserModal(true)
+                }}
+                className="bg-primary text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-900 transition flex items-center gap-1"
+              >
+                + Add New User
+              </button>
+            </div>
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden overflow-x-auto">
+              <table className="w-full text-sm whitespace-nowrap">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    {['Name', 'Email', 'Role', 'Status', 'Joined', 'Actions'].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-gray-600 font-medium">{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {users.map(user => (
+                    <tr key={user.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-800">{user.name}</td>
+                      <td className="px-4 py-3 text-gray-600">{user.email}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                          user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
+                          user.role === 'PROVIDER' ? 'bg-blue-100 text-blue-700' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {user.isActive ? 'Active' : 'Deactivated'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500">
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setCurrentUserData(user)
+                              setShowUserModal(true)
+                            }}
+                            className="text-primary hover:text-blue-900 font-medium transition"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -681,6 +735,120 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* User Modal */}
+      {showUserModal && currentUserData && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h2 className="text-lg font-bold text-gray-800">
+                {currentUserData.id ? 'Edit User' : 'Add New User'}
+              </h2>
+              <button 
+                onClick={() => {
+                  setShowUserModal(false)
+                  setCurrentUserData(null)
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <form onSubmit={handleUserSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={currentUserData.name}
+                  onChange={(e) => setCurrentUserData({ ...currentUserData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  required
+                  value={currentUserData.email}
+                  onChange={(e) => setCurrentUserData({ ...currentUserData, email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                />
+              </div>
+
+              {!currentUserData.id && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                  <input
+                    type="password"
+                    required
+                    value={currentUserData.password}
+                    onChange={(e) => setCurrentUserData({ ...currentUserData, password: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                  <select
+                    value={currentUserData.role}
+                    onChange={(e) => setCurrentUserData({ ...currentUserData, role: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm bg-white"
+                  >
+                    <option value="CUSTOMER">Customer</option>
+                    <option value="PROVIDER">Provider</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </div>
+                
+                {currentUserData.id && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select
+                      value={currentUserData.isActive ? 'true' : 'false'}
+                      onChange={(e) => setCurrentUserData({ ...currentUserData, isActive: e.target.value === 'true' })}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm bg-white font-medium ${
+                        currentUserData.isActive ? 'border-green-300 text-green-700' : 'border-red-300 text-red-700'
+                      }`}
+                    >
+                      <option value="true">Active</option>
+                      <option value="false">Deactivated</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+              
+              {currentUserData.id && !currentUserData.isActive && (
+                <div className="bg-red-50 text-red-600 text-xs p-3 rounded border border-red-100">
+                  <strong>Warning:</strong> Deactivating a user prevents them from logging into the platform entirely.
+                </div>
+              )}
+
+              <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowUserModal(false)}
+                  className="px-4 py-2 border border-gray-300 text-gray-600 rounded-md text-sm font-medium hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updatingId === 'user-modal'}
+                  className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-blue-900 transition disabled:opacity-50"
+                >
+                  {updatingId === 'user-modal' ? 'Saving...' : 'Save User'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

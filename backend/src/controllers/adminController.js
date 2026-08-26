@@ -137,16 +137,91 @@ exports.updateProviderVerification = async (req, res) => {
 exports.getUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      where: { role: 'CUSTOMER' },
       select: {
         id: true, name: true, email: true, role: true,
-        district: true, phone: true, createdAt: true
+        district: true, phone: true, isActive: true, createdAt: true
       },
       orderBy: { createdAt: 'desc' }
     })
     res.json(users)
   } catch (error) {
     res.status(500).json({ error: 'Could not fetch users', details: error.message })
+  }
+}
+
+// CREATE new user (Admin)
+const bcrypt = require('bcryptjs')
+exports.createUser = async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ error: 'Name, email, password, and role are required' })
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } })
+    if (existingUser) {
+      return res.status(400).json({ error: 'Email already exists' })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12)
+
+    const user = await prisma.user.create({
+      data: { name, email, password: hashedPassword, role }
+    })
+
+    if (role === 'PROVIDER') {
+      await prisma.provider.create({
+        data: { userId: user.id, district: '' }
+      })
+    }
+
+    res.status(201).json({ message: 'User created successfully', user: { id: user.id, name, email, role, isActive: true } })
+  } catch (error) {
+    res.status(500).json({ error: 'Could not create user', details: error.message })
+  }
+}
+
+// UPDATE user (Admin)
+exports.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { name, email, role, isActive } = req.body
+
+    if (!name || !email || !role) {
+      return res.status(400).json({ error: 'Name, email, and role are required' })
+    }
+
+    // Check email uniqueness if email is changed
+    const existingUser = await prisma.user.findUnique({ where: { id } })
+    if (!existingUser) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    if (email !== existingUser.email) {
+      const emailCheck = await prisma.user.findUnique({ where: { email } })
+      if (emailCheck) {
+        return res.status(400).json({ error: 'Email already in use by another account' })
+      }
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: { name, email, role, isActive },
+      select: { id: true, name: true, email: true, role: true, district: true, phone: true, isActive: true, createdAt: true }
+    })
+
+    // Create provider profile if role changed to PROVIDER and doesn't exist
+    if (role === 'PROVIDER' && existingUser.role !== 'PROVIDER') {
+      const existingProvider = await prisma.provider.findUnique({ where: { userId: id } })
+      if (!existingProvider) {
+        await prisma.provider.create({ data: { userId: id, district: '' } })
+      }
+    }
+
+    res.json({ message: 'User updated successfully', user: updatedUser })
+  } catch (error) {
+    res.status(500).json({ error: 'Could not update user', details: error.message })
   }
 }
 
