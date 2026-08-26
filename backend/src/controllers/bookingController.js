@@ -58,7 +58,8 @@ exports.createBooking = async (req, res) => {
       },
       include: {
         service: true,
-        provider: { include: { user: { select: { name: true, phone: true } } } }
+        provider: { include: { user: { select: { name: true, phone: true } } } },
+        customer: { select: { name: true } }
       }
     })
 
@@ -66,7 +67,7 @@ exports.createBooking = async (req, res) => {
     if (booking.provider.user.phone) {
       notifyNewBooking(
         booking.provider.user.phone,
-        req.body.customerName || 'A customer',
+        booking.customer?.name || 'A customer',
         booking.service.title,
         new Date(booking.bookingDate).toLocaleDateString(),
         booking.timeSlot
