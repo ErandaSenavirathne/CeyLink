@@ -4,7 +4,7 @@ const cloudinary = require('../utils/cloudinary')
 // GET all providers (with optional filters)
 exports.getProviders = async (req, res) => {
   try {
-    const { district, city, category, search, page = 1, limit = 10 } = req.query
+    const { district, city, category, search, page = 1, limit = 10, nearMe, userCity, userDistrict } = req.query
 
     const pageNumber = parseInt(page, 10)
     const pageSize = parseInt(limit, 10)
@@ -34,28 +34,80 @@ exports.getProviders = async (req, res) => {
       })
     }
 
-    const [totalProviders, providers] = await prisma.$transaction([
-      prisma.provider.count({ where: whereClause }),
-      prisma.provider.findMany({
+    let totalProviders = 0
+    let providers = []
+
+    if (nearMe === 'true' && userDistrict) {
+      // Fetch all matching providers to sort in JS by proximity
+      const allProviders = await prisma.provider.findMany({
         where: whereClause,
-        skip,
-        take: pageSize,
-      include: {
-        user: { select: { name: true, phone: true, createdAt: true } },
-        services: { where: { status: 'APPROVED' } },
-        reviews: { select: { rating: true } },
-        _count: {
-          select: {
-            reviews: true,
-            bookings: true
+        include: {
+          user: { select: { name: true, phone: true, createdAt: true } },
+          services: { where: { status: 'APPROVED' } },
+          reviews: { select: { rating: true } },
+          _count: {
+            select: {
+              reviews: true,
+              bookings: true
+            }
+          },
+          bookings: {
+            select: { id: true, status: true }
           }
-        },
-        bookings: {
-          select: { id: true, status: true }
         }
-      }
-    })
-    ])
+      })
+
+      // Sort logic
+      allProviders.sort((a, b) => {
+        const aCityMatch = a.city === userCity ? 1 : 0
+        const bCityMatch = b.city === userCity ? 1 : 0
+        if (aCityMatch !== bCityMatch) return bCityMatch - aCityMatch
+
+        const aDistrictMatch = a.district === userDistrict ? 1 : 0
+        const bDistrictMatch = b.district === userDistrict ? 1 : 0
+        if (aDistrictMatch !== bDistrictMatch) return bDistrictMatch - aDistrictMatch
+
+        return 0 // Keep original order if both are same level
+      })
+
+      totalProviders = allProviders.length
+      providers = allProviders.slice(skip, skip + pageSize)
+      
+      // Inject proximity label for frontend
+      providers = providers.map(p => {
+        let proximity = 'Other district'
+        if (p.city === userCity) proximity = 'Same city as you'
+        else if (p.district === userDistrict) proximity = 'Same district as you'
+        return { ...p, proximityLabel: proximity }
+      })
+
+    } else {
+      // Standard database pagination
+      const [count, paginatedProviders] = await prisma.$transaction([
+        prisma.provider.count({ where: whereClause }),
+        prisma.provider.findMany({
+          where: whereClause,
+          skip,
+          take: pageSize,
+          include: {
+            user: { select: { name: true, phone: true, createdAt: true } },
+            services: { where: { status: 'APPROVED' } },
+            reviews: { select: { rating: true } },
+            _count: {
+              select: {
+                reviews: true,
+                bookings: true
+              }
+            },
+            bookings: {
+              select: { id: true, status: true }
+            }
+          }
+        })
+      ])
+      totalProviders = count
+      providers = paginatedProviders
+    }
 
     const providersWithStats = providers.map(provider => {
       const ratings = provider.reviews.map(r => r.rating)

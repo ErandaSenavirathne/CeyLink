@@ -6,6 +6,7 @@ import SEO from '../components/SEO'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import sriLankaCities from '../data/sriLankaCities'
+import { useAuth } from '../context/AuthContext'
 
 const districts = [
   'Colombo', 'Gampaha', 'Kalutara', 'Kandy', 'Matale', 'Nuwara Eliya',
@@ -58,6 +59,7 @@ function Avatar({ name, photo, size = 'md' }) {
 
 export default function Browse() {
   const { t, i18n } = useTranslation()
+  const { user } = useAuth()
   const [providers, setProviders] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
@@ -67,6 +69,7 @@ export default function Browse() {
   const [categoryFilter, setCategoryFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [nearMe, setNearMe] = useState(false)
   
   // Pagination state
   const [page, setPage] = useState(1)
@@ -96,7 +99,7 @@ export default function Browse() {
 
   useEffect(() => {
     fetchProviders()
-  }, [districtFilter, cityFilter, categoryFilter, debouncedSearch, page])
+  }, [districtFilter, cityFilter, categoryFilter, debouncedSearch, page, nearMe])
 
   const fetchProviders = async () => {
     setLoading(true)
@@ -110,6 +113,11 @@ export default function Browse() {
       if (cityFilter) params.city = cityFilter
       if (categoryFilter) params.category = categoryFilter
       if (debouncedSearch) params.search = debouncedSearch
+      if (nearMe && user) {
+        params.nearMe = true
+        params.userCity = user.city
+        params.userDistrict = user.district
+      }
 
       const res = await api.get('/providers', { params })
       setProviders(res.data.data)
@@ -139,7 +147,7 @@ export default function Browse() {
         <p className="text-gray-500 mb-6">{t('browse.subtitle')}</p>
 
         {/* Filters row */}
-        <div className="flex flex-wrap gap-3 mb-6">
+        <div className="flex flex-wrap gap-3 mb-6 items-center">
           <input
             type="text"
             placeholder={t('browse.searchPlaceholder') || 'Search by name or service...'}
@@ -147,6 +155,22 @@ export default function Browse() {
             onChange={e => setSearchQuery(e.target.value)}
             className="flex-1 min-w-48 px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-accent text-sm"
           />
+
+          {user && (
+            <button
+              onClick={() => {
+                setNearMe(!nearMe)
+                setPage(1)
+              }}
+              className={`px-3 py-2 border rounded-md text-sm font-medium transition flex items-center gap-1 ${
+                nearMe 
+                  ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              📍 Nearest to me
+            </button>
+          )}
 
           {/* District filter */}
           <select
@@ -261,10 +285,18 @@ export default function Browse() {
           {providers.map(provider => (
             <div
               key={provider.id}
-              className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition flex flex-col relative overflow-hidden"
             >
+              {nearMe && provider.proximityLabel && (
+                <div className="absolute top-4 right-4 text-xs font-medium px-2 py-1 rounded-full bg-gray-50 border border-gray-200 text-gray-600 flex items-center gap-1 z-10">
+                  {provider.proximityLabel === 'Same city as you' && '🟢 '}
+                  {provider.proximityLabel === 'Same district as you' && '🔵 '}
+                  {provider.proximityLabel === 'Other district' && '⚪ '}
+                  {provider.proximityLabel}
+                </div>
+              )}
               {/* Card top section */}
-              <div className="p-5">
+              <div className="p-5 flex-1">
                 <div className="flex gap-4">
                   {/* Profile photo or avatar */}
                   <div className="flex-shrink-0">
