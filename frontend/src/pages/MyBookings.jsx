@@ -124,6 +124,9 @@ export default function MyBookings() {
 
               <div className="flex justify-between items-start mb-2">
                 <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-mono text-xs font-semibold bg-gray-100 px-2 py-1 rounded text-gray-700">{booking.bookingRef}</span>
+                  </div>
                   <h3 className="font-semibold text-gray-800">{booking.service.title}</h3>
                   <p className="text-sm text-gray-500">{t('bookingForm.with')} {booking.provider.user.name}</p>
                 </div>

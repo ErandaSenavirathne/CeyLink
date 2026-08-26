@@ -83,6 +83,7 @@ model Service {
 
 model Booking {
   id            String        @id @default(uuid())
+  bookingRef    String        @unique
   customerId    String
   customer      User          @relation("CustomerBookings", fields: [customerId], references: [id])
   providerId    String

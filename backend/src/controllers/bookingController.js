@@ -42,8 +42,11 @@ exports.createBooking = async (req, res) => {
       return res.status(400).json({ error: 'This time slot is already booked for this provider' })
     }
 
+    const bookingRef = `#BK-${Math.floor(100000 + Math.random() * 900000)}`
+
     const booking = await prisma.booking.create({
       data: {
+        bookingRef,
         customerId: req.user.userId,
         providerId: service.providerId,
         serviceId: service.id,

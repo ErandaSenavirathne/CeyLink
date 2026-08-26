@@ -30,6 +30,9 @@ export default function AdminDashboard() {
   const [categories, setCategories] = useState([])
   const [rejectReasons, setRejectReasons] = useState({})
   const [providerRejectReasons, setProviderRejectReasons] = useState({})
+  const [providerSearch, setProviderSearch] = useState('')
+  const [userSearch, setUserSearch] = useState('')
+  const [bookingSearch, setBookingSearch] = useState('')
   const [activeTab, setActiveTab] = useState('overview')
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState(null)
@@ -173,7 +176,101 @@ export default function AdminDashboard() {
     }
   }
 
+  const downloadCSV = (data, filename) => {
+    if (!data || data.length === 0) {
+      toast.error('No data to export')
+      return
+    }
+    const headers = Object.keys(data[0]).join(',')
+    const rows = data.map(obj => 
+      Object.values(obj).map(val => 
+        typeof val === 'string' ? `"${val.replace(/"/g, '""')}"` : val
+      ).join(',')
+    ).join('\n')
+    
+    const csvContent = `${headers}\n${rows}`
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.setAttribute('download', filename)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast.success(`${filename} exported successfully`)
+  }
+
+  const handleExportProviders = () => {
+    const csvData = providers.map(p => ({
+      ID: p.id,
+      Name: p.user?.name,
+      Email: p.user?.email,
+      Phone: p.user?.phone || '',
+      District: p.district,
+      City: p.city || '',
+      Status: p.verificationStatus,
+      HourlyRate: p.hourlyRate || 0,
+      ServicesCount: p.services?.length || 0,
+      BookingsCount: p._count?.bookings || 0
+    }))
+    downloadCSV(csvData, 'ceylink_providers.csv')
+  }
+
+  const handleExportUsers = () => {
+    const csvData = users.map(u => ({
+      ID: u.id,
+      Name: u.name,
+      Email: u.email,
+      Phone: u.phone || '',
+      Role: u.role,
+      District: u.district || '',
+      City: u.city || '',
+      Status: u.isActive ? 'Active' : 'Deactivated',
+      Joined: new Date(u.createdAt).toLocaleDateString()
+    }))
+    downloadCSV(csvData, 'ceylink_users.csv')
+  }
+
+  const handleExportBookings = () => {
+    const csvData = bookings.map(b => ({
+      ID: b.bookingRef || b.id,
+      Date: new Date(b.bookingDate).toLocaleDateString(),
+      Time: b.timeSlot,
+      Service: b.service?.title || 'Unknown',
+      Customer: b.customer?.name || 'Unknown',
+      Provider: b.provider?.user?.name || 'Unknown',
+      Amount: b.totalAmount,
+      PaymentMode: b.paymentMode,
+      Status: b.status
+    }))
+    downloadCSV(csvData, 'ceylink_bookings.csv')
+  }
+
   const tabs = ['overview', 'categories', 'providers', 'services', 'users', 'bookings', 'reports']
+
+  const filteredProviders = providers.filter(p => {
+    const term = providerSearch.toLowerCase()
+    return p.user?.name?.toLowerCase().includes(term) ||
+           p.user?.email?.toLowerCase().includes(term) ||
+           p.user?.phone?.includes(term) ||
+           p.district?.toLowerCase().includes(term)
+  })
+
+  const filteredUsers = users.filter(u => {
+    const term = userSearch.toLowerCase()
+    return u.name?.toLowerCase().includes(term) ||
+           u.email?.toLowerCase().includes(term) ||
+           u.phone?.includes(term) ||
+           u.role?.toLowerCase().includes(term)
+  })
+
+  const filteredBookings = bookings.filter(b => {
+    const term = bookingSearch.toLowerCase()
+    return b.bookingRef?.toLowerCase().includes(term) ||
+           b.customer?.name?.toLowerCase().includes(term) ||
+           b.provider?.user?.name?.toLowerCase().includes(term) ||
+           b.service?.title?.toLowerCase().includes(term) ||
+           b.status?.toLowerCase().includes(term)
+  })
 
   if (loading) {
     return (
@@ -441,10 +538,28 @@ export default function AdminDashboard() {
         {/* Providers Tab */}
         {activeTab === 'providers' && (
           <div className="space-y-4">
-            {providers.length === 0 && (
-              <p className="text-gray-500 text-center py-8">No providers found.</p>
+            <div className="flex justify-between items-center mb-2 gap-4">
+              <div className="relative flex-1 max-w-md">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search providers by name, email, phone, district..."
+                  value={providerSearch}
+                  onChange={(e) => setProviderSearch(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm bg-white shadow-sm"
+                />
+              </div>
+              <button
+                onClick={handleExportProviders}
+                className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-green-700 transition flex items-center gap-2 whitespace-nowrap"
+              >
+                <span>📊</span> Export to CSV
+              </button>
+            </div>
+            {filteredProviders.length === 0 && (
+              <p className="text-gray-500 text-center py-8">No providers found matching your search.</p>
             )}
-            {providers.map((provider) => (
+            {filteredProviders.map((provider) => (
               <div key={provider.id} className="bg-white rounded-lg shadow-sm p-5">
                 <div className="flex justify-between items-start mb-3">
                   <div>
@@ -678,6 +793,24 @@ export default function AdminDashboard() {
                 + Add New User
               </button>
             </div>
+            <div className="flex justify-between items-center mb-4 gap-4">
+              <div className="relative flex-1 max-w-md">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search users by name, email, phone, role..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm bg-white shadow-sm"
+                />
+              </div>
+              <button
+                onClick={handleExportUsers}
+                className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-green-700 transition flex items-center gap-2 whitespace-nowrap"
+              >
+                <span>📊</span> Export to CSV
+              </button>
+            </div>
             <div className="bg-white rounded-lg shadow-sm overflow-hidden overflow-x-auto">
               <table className="w-full text-sm whitespace-nowrap">
                 <thead className="bg-gray-50 border-b border-gray-200">
@@ -688,7 +821,7 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {users.map(user => (
+                  {filteredUsers.map(user => (
                     <tr key={user.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-800">{user.name}</td>
                       <td className="px-4 py-3 text-gray-600">{user.email}</td>
@@ -733,12 +866,36 @@ export default function AdminDashboard() {
         {/* Bookings Tab */}
         {activeTab === 'bookings' && (
           <div className="space-y-3">
-            {bookings.map(booking => (
+            <div className="flex justify-between items-center mb-2 gap-4">
+              <div className="relative flex-1 max-w-md">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search bookings by customer, provider, service, or status..."
+                  value={bookingSearch}
+                  onChange={(e) => setBookingSearch(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm bg-white shadow-sm"
+                />
+              </div>
+              <button
+                onClick={handleExportBookings}
+                className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-green-700 transition flex items-center gap-2 whitespace-nowrap"
+              >
+                <span>📊</span> Export to CSV
+              </button>
+            </div>
+            {filteredBookings.length === 0 && (
+              <p className="text-gray-500 text-center py-8">No bookings found matching your search.</p>
+            )}
+            {filteredBookings.map(booking => (
               <div key={booking.id} className="bg-white rounded-lg shadow-sm p-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-medium text-gray-800">{booking.service.title}</h3>
-                    <p className="text-sm text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-semibold bg-gray-100 px-2 py-1 rounded text-gray-700">{booking.bookingRef}</span>
+                      <h3 className="font-medium text-gray-800">{booking.service.title}</h3>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">
                       {booking.customer.name} → {booking.provider.user.name}
                     </p>
                     <p className="text-sm text-gray-500">

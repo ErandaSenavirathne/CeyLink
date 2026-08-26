@@ -41,9 +41,15 @@ exports.register = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
+    // Normalize phone number (07... to +947...)
+    let normalizedPhone = phone
+    if (phone && phone.startsWith('0')) {
+      normalizedPhone = '+94' + phone.slice(1)
+    }
+
     // Create user
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, phone, role, district, city, address }
+      data: { name, email, password: hashedPassword, phone: normalizedPhone, role, district, city, address }
     })
 
     // If registering as provider, create provider profile too
@@ -87,7 +93,10 @@ exports.login = async (req, res) => {
     const { email, password } = req.body
 
     // Find user
-    const user = await prisma.user.findUnique({ where: { email } })
+    const user = await prisma.user.findUnique({ 
+      where: { email },
+      include: { provider: { select: { profilePhoto: true } } } 
+    })
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' })
     }
@@ -117,7 +126,7 @@ exports.login = async (req, res) => {
         district: user.district,
         city: user.city,
         address: user.address,
-        profilePhoto: user.profilePhoto,
+        profilePhoto: user.provider?.profilePhoto || user.profilePhoto,
         createdAt: user.createdAt 
       }
     })
@@ -131,9 +140,25 @@ exports.getMe = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      select: { id: true, name: true, email: true, role: true, phone: true, district: true, city: true, address: true, profilePhoto: true, createdAt: true }
+      include: { provider: { select: { profilePhoto: true } } }
     })
-    res.json(user)
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      district: user.district,
+      city: user.city,
+      address: user.address,
+      profilePhoto: user.provider?.profilePhoto || user.profilePhoto,
+      createdAt: user.createdAt
+    })
   } catch (error) {
     res.status(500).json({ error: 'Could not fetch user' })
   }
@@ -149,9 +174,15 @@ exports.updateProfile = async (req, res) => {
 
     const { name, phone, district, city, address, profilePhoto } = req.body
 
+    // Normalize phone number (07... to +947...)
+    let normalizedPhone = phone
+    if (phone && phone.startsWith('0')) {
+      normalizedPhone = '+94' + phone.slice(1)
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: req.user.userId },
-      data: { name, phone, district, city, address, profilePhoto },
+      data: { name, phone: normalizedPhone, district, city, address, profilePhoto },
       select: { id: true, name: true, email: true, role: true, phone: true, district: true, city: true, address: true, profilePhoto: true, createdAt: true }
     })
 
