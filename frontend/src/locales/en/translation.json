@@ -951,5 +951,56 @@
     "Daraniyagala": "Daraniyagala",
     "Kitulgala": "Kitulgala",
     "Karawanella": "Karawanella"
+  },
+  "guide": {
+    "pageTitle": "How to Use CeyLink",
+    "customerSection": "For Customers",
+    "providerSection": "For Service Providers",
+    "skip": "Skip Tour",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Get Started",
+    "readLater": "You can always read this later in the",
+    "dedicatedSection": "Help & Guide section",
+    "customer": {
+      "slide1": {
+        "title": "Welcome to CeyLink! 👋",
+        "content": "The easiest way to find trusted, verified service professionals in Sri Lanka. Let's take a quick tour!"
+      },
+      "slide2": {
+        "title": "Search & Filter",
+        "content": "Use the Browse page to find providers. You can filter by category or use the new \"📍 Nearest to me\" toggle to instantly prioritize professionals in your exact city!"
+      },
+      "slide3": {
+        "title": "Book Appointments",
+        "content": "Once you find a provider, click View Profile to read real reviews and book an appointment directly. Track all your upcoming jobs in your Dashboard!"
+      },
+      "review": {
+        "title": "Leave a Review",
+        "content": "After the job is completed, you can leave a star rating and a review from your Dashboard to help other customers find great providers."
+      }
+    },
+    "provider": {
+      "slide1": {
+        "title": "Welcome to CeyLink Provider! 🚀",
+        "content": "Let's get your business online and start reaching more local customers."
+      },
+      "slide2": {
+        "title": "Complete Your Profile",
+        "content": "Make sure to add a bio, hourly rate, and upload your NIC for verification. Verified providers get a green checkmark and rank higher in search results!"
+      },
+      "slide3": {
+        "title": "Add Your Services",
+        "content": "Go to your Profile and add the specific services you offer (e.g., \"Pipe Repair\" under Plumbing). Customers search for these services!"
+      },
+      "slide4": {
+        "title": "Manage Bookings",
+        "content": "Customers will send you booking requests. Check your Dashboard to Accept or Reject them. Complete jobs successfully to earn 5-star reviews!"
+      },
+      "availability": {
+        "title": "Set Availability",
+        "content": "If you are currently busy and cannot accept new bookings, toggle your \"Available / Busy\" switch in your Dashboard so customers know your status."
+      }
+    }
   }
 }

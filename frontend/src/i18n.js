@@ -26,3 +26,5 @@ i18n
   })
 
 export default i18n
+
+// Force Vite HMR reload

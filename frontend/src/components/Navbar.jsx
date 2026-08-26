@@ -40,6 +40,12 @@ export default function Navbar() {
           <Link to="/admin" className="hover:text-accent transition">{t('nav.adminPanel')}</Link>
         )}
 
+        {user && user.role !== 'ADMIN' && (
+          <Link to="/guide" className="hover:text-accent transition flex items-center gap-1">
+            <span>❓</span> {t('nav.guide', 'Guide')}
+          </Link>
+        )}
+
         {/* Language switcher */}
         {user?.role !== 'ADMIN' && (
           <div className="flex gap-1 bg-white/10 rounded-md p-1">

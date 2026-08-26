@@ -49,7 +49,7 @@ export default function BookingForm() {
     try {
       // We get the service through the provider list since there's no single-service endpoint yet
       const res = await api.get('/providers')
-      const allServices = res.data.flatMap(p => p.services.map(s => ({ ...s, providerName: p.user.name })))
+      const allServices = res.data.data.flatMap(p => p.services.map(s => ({ ...s, providerName: p.user.name })))
       const found = allServices.find(s => s.id === serviceId)
       setService(found)
     } catch {

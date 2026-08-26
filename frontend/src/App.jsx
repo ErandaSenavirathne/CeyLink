@@ -13,8 +13,10 @@ import AdminDashboard from './pages/AdminDashboard'
 import ProviderProfile from './pages/ProviderProfile'
 import MyProfile from './pages/MyProfile'
 import Landing from './pages/Landing'
+import Guide from './pages/Guide'
 import ScrollToTop from './components/ScrollToTop'
 import { Toaster } from 'react-hot-toast'
+import OnboardingGuideModal from './components/OnboardingGuideModal'
 
 function App() {
   const { user, loading } = useAuth()
@@ -31,6 +33,7 @@ function App() {
     <>
       <ScrollToTop />
       <Toaster position="top-center" />
+      <OnboardingGuideModal />
       <Routes>
       <Route path="/" element={user ? (<Navigate to={user.role === 'ADMIN' ? '/admin' : user.role === 'PROVIDER' ? '/dashboard' : '/browse'} />) : (<Landing />)} />
       <Route path="/login" element={user ? (<Navigate to={user.role === 'ADMIN' ? '/admin' : user.role === 'PROVIDER' ? '/dashboard' : '/browse'} />) : (<Login />)} />
@@ -45,6 +48,7 @@ function App() {
       <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['PROVIDER']}><ProviderDashboard /></ProtectedRoute>} />
       <Route path="/provider-profile" element={<ProtectedRoute allowedRoles={['PROVIDER']}><ProviderProfile /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/guide" element={<Guide />} />
     </Routes>
     </>
   )

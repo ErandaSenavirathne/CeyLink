@@ -21,6 +21,7 @@ export default function MyBookings() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [reviewData, setReviewData] = useState({}) // { bookingId: { rating, text, submitting, error } }
+  const [selectedPhotoUrl, setSelectedPhotoUrl] = useState(null)
 
   useEffect(() => {
     fetchBookings()
@@ -142,6 +143,33 @@ export default function MyBookings() {
                 <p className="text-sm text-gray-500 mt-2 italic">"{booking.notes}"</p>
               )}
 
+              {/* Photo Attachments */}
+              {booking.photoUrls && booking.photoUrls.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs text-gray-500 font-medium mb-2 uppercase tracking-wide">
+                    📷 Attachments
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    {booking.photoUrls.map((url, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedPhotoUrl(url)}
+                        className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 hover:ring-2 hover:ring-primary transition group"
+                      >
+                        <img 
+                          src={url} 
+                          alt={`Attachment ${idx + 1}`} 
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                          <span className="text-white text-xs">🔍</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Action buttons depending on status */}
               <div className="mt-4 flex flex-col gap-2">
                 {booking.status === 'PENDING' && (
@@ -191,6 +219,28 @@ export default function MyBookings() {
           ))}
         </div>
       </div>
+
+      {/* Lightbox Modal */}
+      {selectedPhotoUrl && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setSelectedPhotoUrl(null)}
+        >
+          <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center" onClick={e => e.stopPropagation()}>
+            <button 
+              onClick={() => setSelectedPhotoUrl(null)}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 bg-black/50 hover:bg-black/80 rounded-full w-10 h-10 flex items-center justify-center text-xl transition"
+            >
+              ✕
+            </button>
+            <img 
+              src={selectedPhotoUrl} 
+              alt="Full size attachment" 
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
